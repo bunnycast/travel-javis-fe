@@ -1,3 +1,74 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+  font-family: 'Pretendard_GOV';
+  src: url('./assets/fonts/PretendardGOV-Thin.otf') format('opentype');
+  font-weight: 100;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Pretendard_GOV';
+  src: url('./assets/fonts/PretendardGOV-ExtraLight.otf') format('opentype');
+  font-weight: 200;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Pretendard_GOV';
+  src: url('./assets/fonts/PretendardGOV-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Pretendard_GOV';
+  src: url('./assets/fonts/PretendardGOV-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Pretendard_GOV';
+  src: url('./assets/fonts/PretendardGOV-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Pretendard_GOV';
+  src: url('./assets/fonts/PretendardGOV-SemiBold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Pretendard_GOV';
+  src: url('./assets/fonts/PretendardGOV-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Pretendard_GOV';
+  src: url('./assets/fonts/PretendardGOV-ExtraBold.otf') format('opentype');
+  font-weight: 800;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Pretendard_GOV';
+  src: url('./assets/fonts/PretendardGOV-Black.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: 'pretendard', sans-serif; /* Tailwind config에 설정한 이름 */
+}
