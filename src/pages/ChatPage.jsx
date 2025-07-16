@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom'; // useNavigate, useParams 임포트
+import { v4 as uuidv4 } from 'uuid'; // uuid 임포트
 import Header from '../components/layout/Header';
 import MessageList from '../components/chat/MessageList';
 import ChatInput from '../components/chat/ChatInput';
+import Sidebar from '../components/layout/Sidebar'; // Sidebar 임포트
 
 const ChatPage = () => {
   const [messages, setMessages] = useState([
@@ -11,6 +14,18 @@ const ChatPage = () => {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Sidebar 상태 추가
+  const navigate = useNavigate(); // useNavigate 훅 사용
+  const { conversationId } = useParams(); // URL 파라미터 읽기
+
+  // 새로운 대화 시작 함수
+  const startNewConversation = () => {
+    const newId = uuidv4(); // 난수 ID 생성
+    navigate(`/chat/${newId}`); // 난수 ID를 포함한 URL로 이동
+    setMessages([]); // 새 대화이므로 메시지 초기화
+    setInputValue('');
+    // TODO: 백엔드에 새 대화 생성 요청 (newId 전달)
+  };
 
   useEffect(() => {
     if (window.visualViewport) {
@@ -30,6 +45,18 @@ const ChatPage = () => {
     }
   }, []);
 
+  // conversationId가 변경될 때마다 해당 대화 로드 (API 호출)
+  useEffect(() => {
+    if (conversationId) {
+      console.log(`Loading conversation: ${conversationId}`);
+      // TODO: 백엔드 API를 호출하여 해당 conversationId의 메시지 로드
+      // setMessages(loadedMessages);
+    } else {
+      // conversationId가 없으면 (예: / 경로) 새 대화 시작
+      // startNewConversation(); // 필요하다면 자동으로 새 대화 시작
+    }
+  }, [conversationId]); // conversationId가 변경될 때마다 실행
+
   const handleSendMessage = () => {
     if (inputValue.trim() === '') return;
 
@@ -46,16 +73,18 @@ const ChatPage = () => {
 
   return (
     <div 
-      className="w-full h-screen bg-white overflow-hidden flex flex-col"
+      className="w-full h-screen bg-white overflow-hidden relative"
       style={{ '--keyboard-height': `${keyboardHeight}px` }}
     >
-      <Header />
+      <Header onMenuClick={() => setIsSidebarOpen(true)} onNewChatClick={startNewConversation} /> {/* onMenuClick, onNewChatClick prop 추가 */}
       <MessageList messages={messages} />
       <ChatInput 
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onSend={handleSendMessage}
       />
+      {/* Sidebar 컴포넌트 추가 */}
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
     </div>
   );
 };

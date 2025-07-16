@@ -16,9 +16,9 @@ const ChatInput = ({ value, onChange, onSend }) => {
   const isInputEmpty = value.trim() === '';
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t pb-[calc(1rem+var(--keyboard-height, 0px))]">
+    <footer className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t pb-[calc(1rem+var(--keyboard-height, 0px))] z-20">
       <div className="flex items-center bg-light-gray-bg rounded-full px-2 py-1 shadow-sm">
-        <IconButton onClick={() => alert('파일 첨부 클릭')}>
+        <IconButton onClick={() => console.log('파일 첨부 클릭')}>
           <img src={attachmentIcon} alt="파일 첨부" className="h-6 w-6 text-blue-500" />
         </IconButton>
         
@@ -30,7 +30,7 @@ const ChatInput = ({ value, onChange, onSend }) => {
           className="flex-1 mx-2 bg-transparent text-base text-gray-800 placeholder-gray-400 focus:outline-none"
         />
 
-        <IconButton onClick={() => alert('음성 입력 클릭')}>
+        <IconButton onClick={() => console.log('음성 입력 클릭')}>
           <img src={micIcon} alt="음성 입력" className="h-6 w-6 text-blue-500" />
         </IconButton>
 
