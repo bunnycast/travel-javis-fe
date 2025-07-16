@@ -3,7 +3,6 @@ import IconButton from '../ui/IconButton';
 import { useNavigate } from 'react-router-dom'; // useNavigate 임포트
 import Fuse from 'fuse.js'; // Fuse 임포트
 
-// 임시 아이콘 경로 (나중에 실제 에셋으로 교체)
 import searchIcon from '../../assets/icons/search.svg';
 import profileDefaultImage from '../../assets/images/default-profile.svg'; // 기본 프로필 이미지
 import dotMenuIcon from '../../assets/icons/dot_menu.svg';

@@ -85,6 +85,14 @@ const ChatPage = () => {
       />
       {/* Sidebar 컴포넌트 추가 */}
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+
+      {/* Sidebar 오버레이 (투명) */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-transparent z-10"
+          onClick={() => setIsSidebarOpen(false)}
+        ></div>
+      )}
     </div>
   );
 };
