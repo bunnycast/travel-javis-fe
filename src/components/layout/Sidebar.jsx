@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import IconButton from '../ui/IconButton';
 import {useNavigate} from 'react-router-dom'; // useNavigate 임포트
 import Fuse from 'fuse.js'; // Fuse 임포트
@@ -21,10 +21,10 @@ const Sidebar = ({isOpen, onClose}) => {
         setError(null);
         try {
             // 실제 API 엔드포인트와 메서드, 바디 설정
-            const response = await fetch('/api/conversations', { // 실제 API 엔드포인트로 변경
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/conversations`, {
                 method: 'GET', // GET 메서드
                 headers: {
-                    'Content-Type': 'application/json',
+                    'accept': 'application/json',
                     // 'Authorization': 'Bearer YOUR_AUTH_TOKEN', // 인증 토큰이 필요하다면 추가
                 },
                 // body: JSON.stringify({ /* GET 요청이므로 body는 보통 필요 없음 */ }),
@@ -35,7 +35,9 @@ const Sidebar = ({isOpen, onClose}) => {
             }
 
             const data = await response.json();
-            setConversations(data);
+
+            setConversations(data.conversations);
+            console.log(data);
         } catch (err) {
             console.error("Failed to fetch conversations:", err);
             setError("대화 목록을 불러오는데 실패했습니다.");
@@ -76,12 +78,15 @@ const Sidebar = ({isOpen, onClose}) => {
      * - `includeMatches`: 검색된 텍스트의 어느 부분이 일치하는지 상세 정보를 포함할지 여부를 결정합니다.
      *   디버깅이나 일치하는 부분을 강조 표시할 때 유용합니다.
      */
-    const fuse = new Fuse(conversations, {
-        keys: ['title', 'lastMessage'], // 대화 제목과 마지막 메시지에서 검색
-        threshold: 0.5, // 0.3: 어느 정도의 오타나 불일치를 허용하면서도 관련성 높은 결과 유지
-        includeScore: true, // 각 결과의 일치 점수를 확인하여 검색 품질을 평가할 수 있도록 포함
-        includeMatches: true, // 어떤 부분이 일치했는지 상세 정보를 포함 (디버깅 및 강조 표시용)
-    });
+    // conversations 데이터가 변경될 때 마다 'fuse' 인스턴스를 재생성
+    const fuse = useMemo(() => {
+        return new Fuse(conversations, {
+            keys: ['title', 'path'],
+            threshold: 0.5, // 0.3: 어느 정도의 오타나 불일치를 허용하면서도 관련성 높은 결과 유지
+            includeScore: true, // 각 결과의 일치 점수를 확인하여 검색 품질을 평가할 수 있도록 포함
+            includeMatches: true, // 어떤 부분이 일치했는지 상세 정보를 포함 (디버깅 및 강조 표시용)
+        });
+        }, [conversations]); //conversations가 변경될 때만 fuse 인스턴스 재생성
 
     /**
      * 검색어 디바운싱 (Debouncing) 처리
@@ -109,12 +114,15 @@ const Sidebar = ({isOpen, onClose}) => {
     // `debouncedSearchTerm`이 비어있지 않으면 Fuse.js로 검색을 수행하고,
     // 결과에서 `item` (원본 데이터)만 추출합니다.
     // 검색어가 없으면 전체 `conversations` 목록을 반환합니다.
-    const filteredConversations = debouncedSearchTerm
-        ? fuse.search(debouncedSearchTerm).map(result => {
-            console.log('Fuse.js Search Result:', result); // 검색 결과 디버깅용 로그
+    const filteredConversations = useMemo(() => {
+        if (!debouncedSearchTerm) {
+            return conversations;
+        }
+        return fuse.search(debouncedSearchTerm).map(result => {
+            console.log('Fuse.js search Result: ', result); // 검색 결과 디버깅용 로그
             return result.item;
-        })
-        : conversations; // 검색어가 없으면 전체 목록 반환
+        });
+        }, [debouncedSearchTerm, conversations, fuse]);  // debouncedSearchTerm, conversations, fuse가 변경될 때만 재계산
 
     const handleConversationClick = (conversationId) => {
         navigate(`/chat/${conversationId}`); // 해당 대화 경로로 이동
@@ -154,7 +162,7 @@ const Sidebar = ({isOpen, onClose}) => {
                         onClick={() => handleConversationClick(conv.id)} // 클릭 이벤트 추가
                     >
                         <h4 className="font-semibold text-dark-gray">{conv.title}</h4>
-                        <p className="text-sm text-medium-gray truncate">{conv.lastMessage}</p>
+                        <p className="text-sm text-medium-gray truncate">{conv.path}</p>
                     </div>
                 ))}
             </div>
