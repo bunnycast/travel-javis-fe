@@ -20,6 +20,9 @@ const ChatPage = () => {
 
   // 새로운 대화 시작 함수
   const startNewConversation = () => {
+    if (isSidebarOpen) {
+      setIsSidebarOpen(false); // 사이드바가 열려있으면 닫기
+    }
     const newId = uuidv4(); // 난수 ID 생성
     navigate(`/chat/${newId}`); // 난수 ID를 포함한 URL로 이동
     setMessages([]); // 새 대화이므로 메시지 초기화
@@ -57,38 +60,47 @@ const ChatPage = () => {
     }
   }, [conversationId]); // conversationId가 변경될 때마다 실행
 
-  const handleSendMessage = () => {
-    if (inputValue.trim() === '') return;
+  const handleSendMessage = (text, image = null) => {
+    if (text.trim() === '' && !image) return; // 텍스트도 없고 이미지도 없으면 전송하지 않음
 
     const newMessage = {
       id: messages.length + 1,
-      text: inputValue,
+      text: text,
       sender: 'user',
-      type: 'text',
+      type: image ? 'image' : 'text', // 이미지 타입 추가
+      image: image, // 이미지 데이터 추가
     };
 
     setMessages(prevMessages => [...prevMessages, newMessage]);
     setInputValue('');
+    // TODO: 백엔드에 메시지 전송 요청 (이미지 포함)
   };
 
   return (
-    <div 
+    <div
       className="w-full h-screen bg-white overflow-hidden relative"
       style={{ '--keyboard-height': `${keyboardHeight}px` }}
     >
       <Header onMenuClick={() => setIsSidebarOpen(true)} onNewChatClick={startNewConversation} /> {/* onMenuClick, onNewChatClick prop 추가 */}
       <MessageList messages={messages} />
-      <ChatInput 
+      <ChatInput
         value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onSend={handleSendMessage}
+        onChange={(val) => {
+          // val이 이벤트 객체인지 문자열인지 확인하여 처리
+          if (typeof val === 'string') {
+            setInputValue(val);
+          } else if (val && val.target) {
+            setInputValue(val.target.value);
+          }
+        }}
+        onSend={(text, image) => handleSendMessage(text, image)} // onSend prop 변경
       />
       {/* Sidebar 컴포넌트 추가 */}
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       {/* Sidebar 오버레이 (투명) */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-transparent z-10"
           onClick={() => setIsSidebarOpen(false)}
         ></div>
