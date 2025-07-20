@@ -1,14 +1,25 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react'; // useRef 임포트
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import IconButton from '../ui/IconButton';
 import { useNavigate } from 'react-router-dom';
 import Fuse from 'fuse.js';
 
 import searchIcon from '../../assets/icons/search.svg';
 import profileDefaultImage from '../../assets/images/default-profile.svg';
-import dotMenuIcon from '../../assets/icons/dot_menu.svg';
+import dotMenuIcon from '../../assets/icons/dot_menu.svg'; // 점 메뉴 아이콘 임포트
 
-// ConversationOptionsPopup 컴포넌트 임포트 (새로 생성할 파일)
+// ConversationOptionsPopup 컴포넌트 임포트
 import ConversationOptionsPopup from '../ui/ConversationOptionsPopup';
+
+// 날짜 포맷팅 헬퍼 함수
+const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const days = ['일', '월', '화', '수', '목', '금', '토'];
+    const dayOfWeek = days[date.getDay()];
+    return `${year}/${month}/${day} (${dayOfWeek})`;
+};
 
 const Sidebar = ({ isOpen, onClose, conversations, fetchConversations }) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -19,17 +30,17 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations }) => {
     const [showPopup, setShowPopup] = useState(false);
     const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
     const [selectedConversationId, setSelectedConversationId] = useState(null);
-    const longPressTimer = useRef(null); // 길게 누르기 타이머
+    // longPressTimer는 이제 필요 없으므로 제거
 
     // 컴포넌트 마운트 시 대화 목록 불러오기
     useEffect(() => {
         fetchConversations();
     }, []);
 
-    // Fuse.js 설정
+    // Fuse.js 설정 (keys에서 'path' 제거, 'created_at' 추가)
     const fuse = useMemo(() => {
         return new Fuse(conversations, {
-            keys: ['title', 'path'],
+            keys: ['title', 'created_at'], // 'path' 대신 'created_at' 추가
             threshold: 0.5,
             includeScore: true,
             includeMatches: true,
@@ -85,14 +96,20 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations }) => {
         setSelectedConversationId(null);
     };
 
-    // 대화 항목 클릭 (짧게 클릭)
+    // 대화 항목 클릭 (페이지 이동)
     const handleConversationClick = (convId) => {
-        // 길게 누르기 이벤트가 발생하지 않았을 때만 페이지 이동
-        if (!longPressTimer.current) { // 타이머가 설정되지 않았거나 이미 클리어된 경우
-            navigate(`/chat/${convId}`);
-            onClose();
-        }
-        clearTimeout(longPressTimer.current); // 혹시 모를 타이머 클리어
+        navigate(`/chat/${convId}`);
+        onClose();
+    };
+
+    // 점 메뉴 버튼 클릭 시 팝업 열기
+    const handleOpenOptionsPopup = (e, convId) => {
+        e.stopPropagation(); // 대화 항목 클릭 이벤트 전파 방지
+        setSelectedConversationId(convId);
+        // 버튼의 위치를 기준으로 팝업 위치 설정
+        const rect = e.currentTarget.getBoundingClientRect();
+        setPopupPosition({ x: rect.right, y: rect.top }); // 버튼 오른쪽 상단에 팝업 표시
+        setShowPopup(true);
     };
 
     // 팝업 닫기
@@ -102,68 +119,65 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations }) => {
     };
 
     // 제목 수정 기능 (백엔드 API 호출 필요)
-    const handleEditTitle = async () => { // async 키워드 추가
-    if (selectedConversationId) {
-      const newTitle = prompt("새로운 대화 제목을 입력하세요:", "새 제목");
-      if (newTitle !== null && newTitle.trim() !== '') {
-        try {
-          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
-          const response = await fetch(`${API_BASE_URL}/conversations/${selectedConversationId}`, {
-            method: 'PUT',
-            headers: {
-              'accept': 'application/json',
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ title: newTitle }),
-          });
+    const handleEditTitle = async () => {
+        if (selectedConversationId) {
+            const newTitle = prompt("새로운 대화 제목을 입력하세요:", "새 제목");
+            if (newTitle !== null && newTitle.trim() !== '') {
+                try {
+                    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+                    const response = await fetch(`${API_BASE_URL}/conversations/${selectedConversationId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'accept': 'application/json',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ title: newTitle }),
+                    });
 
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
 
-          // API 호출 성공 후 대화 목록 갱신
-          fetchConversations();
-          alert("대화 제목이 성공적으로 변경되었습니다.");
-        } catch (err) {
-          console.error("대화 제목 수정 실패:", err);
-          alert(`대화 제목 수정에 실패했습니다: ${err.message}`);
+                    fetchConversations();
+                    alert("대화 제목이 성공적으로 변경되었습니다.");
+                } catch (err) {
+                    console.error("대화 제목 수정 실패:", err);
+                    alert(`대화 제목 수정에 실패했습니다: ${err.message}`);
+                }
+            }
         }
-      }
-    }
-    handleClosePopup();
-  };
+        handleClosePopup();
+    };
 
     // 대화 삭제 기능 (백엔드 API 호출 필요)
-    const handleDeleteConversation = async () => { // async 키워드 추가
-    if (selectedConversationId && window.confirm("정말로 이 대화를 삭제하시겠습니까?")) {
-      try {
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
-        const response = await fetch(`${API_BASE_URL}/conversations/${selectedConversationId}`, {
-          method: 'DELETE',
-          headers: {
-            'accept': 'application/json',
-          },
-        });
+    const handleDeleteConversation = async () => {
+        if (selectedConversationId && window.confirm("정말로 이 대화를 삭제하시겠습니까?")) {
+            try {
+                const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+                const response = await fetch(`${API_BASE_URL}/conversations/${selectedConversationId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'accept': 'application/json',
+                    },
+                });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                fetchConversations();
+                alert("대화가 성공적으로 삭제되었습니다.");
+
+                if (window.location.pathname.includes(selectedConversationId)) {
+                    navigate('/');
+                }
+            } catch (err) {
+                console.error("대화 삭제 실패:", err);
+                alert(`대화 삭제에 실패했습니다: ${err.message}`);
+            }
         }
-
-        // API 호출 성공 후 대화 목록 갱신
-        fetchConversations();
-        alert("대화가 성공적으로 삭제되었습니다.");
-
-        // 현재 보고 있는 대화가 삭제된 경우, 메인 페이지로 이동
-        if (window.location.pathname.includes(selectedConversationId)) {
-          navigate('/');
-        }
-      } catch (err) {
-        console.error("대화 삭제 실패:", err);
-        alert(`대화 삭제에 실패했습니다: ${err.message}`);
-      }
-    }
-    handleClosePopup();
-  };
+        handleClosePopup();
+    };
 
     return (
         <div
@@ -193,15 +207,17 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations }) => {
                         key={conv.id}
                         className="p-3 mb-2 rounded-lg hover:bg-gray-50 cursor-pointer"
                         onClick={() => handleConversationClick(conv.id)}
-                        onMouseDown={(e) => handleLongPressStart(e, conv.id)} // 마우스 길게 누르기
-                        onMouseUp={handleLongPressEnd}
-                        onMouseLeave={handleLongPressCancel} // 마우스가 요소를 벗어날 때 취소
-                        onTouchStart={(e) => handleLongPressStart(e, conv.id)} // 터치 길게 누르기
-                        onTouchEnd={handleLongPressEnd}
-                        onTouchCancel={handleLongPressCancel}
                     >
-                        <h4 className="font-semibold text-dark-gray">{conv.title}</h4>
-                        <p className="text-sm text-medium-gray truncate">{conv.path}</p>
+                        <div className="flex justify-between items-center"> {/* 제목과 버튼을 위한 flex 컨테이너 */}
+                            <h4 className="font-semibold text-dark-gray">{conv.title}</h4>
+                            <IconButton
+                                onClick={(e) => handleOpenOptionsPopup(e, conv.id)}
+                                className="ml-2" // 제목과의 간격
+                            >
+                                <img src={dotMenuIcon} alt="옵션" className="h-4 w-4 text-gray-400" /> {/* 아이콘 크기 및 색상 조정 */}
+                            </IconButton>
+                        </div>
+                        <p className="text-sm text-medium-gray truncate">{formatDate(conv.created_at)}</p>
                     </div>
                 ))}
             </div>
