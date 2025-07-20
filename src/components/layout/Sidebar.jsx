@@ -21,7 +21,7 @@ const formatDate = (dateString) => {
     return `${year}/${month}/${day} (${dayOfWeek})`;
 };
 
-const Sidebar = ({ isOpen, onClose, conversations, fetchConversations }) => {
+const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurrentConversationTitle }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
     const navigate = useNavigate();
@@ -138,7 +138,8 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations }) => {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
 
-                    fetchConversations();
+          fetchConversations(); // 대화 목록 갱신
+          fetchCurrentConversationTitle(); // 현재 대화 제목 갱신
                     alert("대화 제목이 성공적으로 변경되었습니다.");
                 } catch (err) {
                     console.error("대화 제목 수정 실패:", err);

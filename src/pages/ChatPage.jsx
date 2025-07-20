@@ -16,6 +16,33 @@ const ChatPage = () => {
   const navigate = useNavigate(); // useNavigate 훅 사용
   const { conversationId } = useParams(); // URL 파라미터 읽기
 
+  // 현재 대화의 제목을 불러오는 함수
+  const fetchCurrentConversationTitle = async () => {
+    if (conversationId) {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+        const response = await fetch(`${API_BASE_URL}/conversations/${conversationId}`, {
+          method: 'GET',
+          headers: {
+            'accept': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setCurrentConversationTitle(data.title || '새 채팅');
+      } catch (err) {
+        console.error(`대화 제목 불러오기 실패: ${conversationId}`, err);
+        setCurrentConversationTitle('새 채팅'); // 실패 시 기본 제목으로 설정
+      }
+    } else {
+      setCurrentConversationTitle('새 채팅'); // conversationId가 없으면 기본 제목
+    }
+  };
+
   // 대화 목록을 불러오는 함수
   const fetchConversations = async () => {
     try {
@@ -153,6 +180,7 @@ const ChatPage = () => {
     };
 
     fetchMessagesAndTitle();
+    fetchCurrentConversationTitle(); // 대화 ID 변경 시 제목도 함께 가져옴
   }, [conversationId]);
 
   // 컴포넌트 마운트 시 대화 목록 초기 로드
@@ -216,24 +244,64 @@ const ChatPage = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       console.log('API 응답:', data);
 
       // 3. 봇의 응답 메시지를 화면에 표시
-      const botMessageText = data.answer || data.content;
-      if (botMessageText) {
-        const botMessage = {
+      const botMessageContent = data.answer || data.content;
+      let botMessage = null;
+
+      try {
+        // LLM 응답이 JSON 형식인지 파싱 시도
+        const parsedBotResponse = JSON.parse(botMessageContent);
+
+        // 파싱된 JSON에 'action: "route"'와 필요한 필드가 있는지 확인
+        if (parsedBotResponse.action === 'route' && parsedBotResponse.origin && parsedBotResponse.destination) {
+          // 경로 안내 요청인 경우: /route API 호출 대신 샘플 데이터 사용
+          const routeData = {
+            "route_url": "https://map.naver.com/v5/directions/%EC%84%9C%EC%9A%B8%ED%8A%B8%EB%B3%84%EC%8B%9C+%EC%9A%A9%EC%82%B0%EA%B5%AC+%EB%82%A8%EC%82%B0%EA%B3%B5%EC%9B%90%EA%B8%B8+105/%EB%B6%80%EC%82%B0%EA%B4%91%EC%97%AD%EC%8B%9C+%EC%88%98%EC%98%81%EA%B5%AC+%EA%B4%91%EC%95%88%ED%95%B4%EB%B3%84%EB%A1%9C+219?pathType=0",
+            "distance": "410.8km",
+            "duration": "246998분",
+            "transport_mode": "car"
+          };
+
+          botMessage = {
+            id: uuidv4(),
+            sender: 'bot',
+            type: 'route', // 메시지 타입은 'route'
+            route_data: routeData, // 샘플 경로 데이터를 직접 저장
+            content: `"${parsedBotResponse.origin}"에서 "${parsedBotResponse.destination}"까지의 경로입니다.`, // 사용자에게 보여줄 텍스트 설명
+          };
+        } else {
+          // 'route' 액션이 아니거나 필드가 부족한 경우: 일반 텍스트 응답으로 처리
+          botMessage = {
+            id: uuidv4(),
+            text: botMessageContent,
+            sender: 'bot',
+            type: 'text',
+          };
+        }
+      } catch (e) {
+        // JSON 파싱 실패 시 (LLM이 일반 텍스트로 응답한 경우)
+        botMessage = {
           id: uuidv4(),
-          text: botMessageText,
+          text: botMessageContent,
           sender: 'bot',
           type: 'text',
         };
+      }
+
+      // 최종적으로 구성된 봇 메시지를 상태에 추가
+      if (botMessage) {
         setMessages(prevMessages => [...prevMessages, botMessage]);
       } else {
-        console.error('API 응답에 content 또는 answer 필드가 없습니다:', data);
+        console.error('봇 메시지 생성 실패: ', data);
       }
-      fetchConversations(); // 메시지 전송 후 대화 목록 갱신
+
+      // 대화 목록 및 현재 대화 제목 갱신
+      fetchConversations();
+      fetchCurrentConversationTitle();
     } catch (err) {
       console.error("API 호출 실패:", err);
       alert(`메시지 전송에 실패했습니다: ${err.message}`);
@@ -261,7 +329,7 @@ const ChatPage = () => {
             onSend={(text, image) => handleSendMessage(text, image)} // onSend prop 변경
         />
         {/* Sidebar 컴포넌트 추가 */}
-        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} conversations={conversations} fetchConversations={fetchConversations} />
+        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} conversations={conversations} fetchConversations={fetchConversations} fetchCurrentConversationTitle={fetchCurrentConversationTitle} />
 
         {/* Sidebar 오버레이 (투명) */}
         {isSidebarOpen && (

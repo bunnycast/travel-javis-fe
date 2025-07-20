@@ -10,7 +10,10 @@ const MessageList = ({ messages = [] }) => {
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // 모든 메시지가 렌더링된 후 스크롤이 되도록 작은 지연 추가
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100); // 100ms 지연
   };
 
   useEffect(() => {
