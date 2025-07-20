@@ -11,8 +11,32 @@ const ChatPage = () => {
   const [inputValue, setInputValue] = useState('');
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Sidebar 상태 추가
+  const [conversations, setConversations] = useState([]); // 대화 목록 상태 추가
   const navigate = useNavigate(); // useNavigate 훅 사용
   const { conversationId } = useParams(); // URL 파라미터 읽기
+
+  // 대화 목록을 불러오는 함수
+  const fetchConversations = async () => {
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+      const response = await fetch(`${API_BASE_URL}/conversations/`, {
+        method: 'GET',
+        headers: {
+          'accept': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setConversations(data.conversations || []); // conversations 상태 업데이트
+    } catch (err) {
+      console.error("대화 목록 불러오기 실패:", err);
+      // 사용자에게 에러를 알리거나 다른 방식으로 처리할 수 있습니다.
+    }
+  };
 
   // 새로운 대화 시작 함수
   const startNewConversation = async () => {
@@ -43,7 +67,7 @@ const ChatPage = () => {
       setMessages([]); // 새 대화이므로 메시지 초기화
       setInputValue('');
       console.log("새 대화 생성 성공:", data);
-
+      fetchConversations(); // 새 대화 생성 후 대화 목록 갱신
     } catch (err) {
       console.error("새 대화 생성 실패:", err);
       alert(`새 대화 생성 실패: ${err.message}`);
@@ -110,6 +134,11 @@ const ChatPage = () => {
     fetchMessages();
   }, [conversationId]); // conversationId가 변경될 때마다 실행
 
+  // 컴포넌트 마운트 시 대화 목록 초기 로드
+  useEffect(() => {
+    fetchConversations();
+  }, []);
+
   const handleSendMessage = async (text, imageFile = null) => {
     if (text.trim() === '' && !imageFile) return;
 
@@ -149,8 +178,8 @@ const ChatPage = () => {
       options = {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'accept': 'application/json',
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           prompt: text,
@@ -158,6 +187,8 @@ const ChatPage = () => {
         }),
       };
     }
+
+    console.log('endpoint:', endpoint);
 
     try {
       const response = await fetch(endpoint, options);
@@ -181,7 +212,7 @@ const ChatPage = () => {
       } else {
         console.error('API 응답에 content 또는 answer 필드가 없습니다:', data);
       }
-
+      fetchConversations(); // 메시지 전송 후 대화 목록 갱신
     } catch (err) {
       console.error("API 호출 실패:", err);
       alert(`메시지 전송에 실패했습니다: ${err.message}`);
@@ -194,7 +225,7 @@ const ChatPage = () => {
           className="w-full h-screen bg-white overflow-hidden relative"
           style={{ '--keyboard-height': `${keyboardHeight}px` }}
       >
-        <Header onMenuClick={() => setIsSidebarOpen(true)} onNewChatClick={startNewConversation} /> {/* onMenuClick, onNewChatClick prop 추가 */}
+        <Header onMenuClick={() => { setIsSidebarOpen(true); fetchConversations(); }} onNewChatClick={startNewConversation} /> {/* onMenuClick, onNewChatClick prop 추가 */}
         <MessageList messages={messages} />
         <ChatInput
             value={inputValue}
@@ -209,7 +240,7 @@ const ChatPage = () => {
             onSend={(text, image) => handleSendMessage(text, image)} // onSend prop 변경
         />
         {/* Sidebar 컴포넌트 추가 */}
-        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} conversations={conversations} fetchConversations={fetchConversations} />
 
         {/* Sidebar 오버레이 (투명) */}
         {isSidebarOpen && (

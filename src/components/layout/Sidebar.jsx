@@ -7,45 +7,10 @@ import searchIcon from '../../assets/icons/search.svg';
 import profileDefaultImage from '../../assets/images/default-profile.svg'; // 기본 프로필 이미지
 import dotMenuIcon from '../../assets/icons/dot_menu.svg';
 
-const Sidebar = ({isOpen, onClose}) => {
+const Sidebar = ({isOpen, onClose, conversations, fetchConversations}) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(''); // 디바운싱된 검색어
-    const [conversations, setConversations] = useState([]); // API에서 가져올 대화 목록
-    const [isLoading, setIsLoading] = useState(true); // 로딩 상태
-    const [error, setError] = useState(null); // 에러 상태
     const navigate = useNavigate(); // useNavigate 훅 사용
-
-    // API 호출 함수
-    const fetchConversations = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            // 실제 API 엔드포인트와 메서드, 바디 설정
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/conversations/`, {
-                method: 'GET', // GET 메서드
-                headers: {
-                    'accept': 'application/json',
-                    // 'Authorization': 'Bearer YOUR_AUTH_TOKEN', // 인증 토큰이 필요하다면 추가
-                },
-                // body: JSON.stringify({ /* GET 요청이므로 body는 보통 필요 없음 */ }),
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            console.log(data);
-
-            setConversations(data.conversations);
-
-        } catch (err) {
-            console.error("Failed to fetch conversations:", err);
-            setError("대화 목록을 불러오는데 실패했습니다.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     // 컴포넌트 마운트 시 대화 목록 불러오기
     useEffect(() => {
@@ -151,12 +116,10 @@ const Sidebar = ({isOpen, onClose}) => {
 
             {/* Conversation List */}
             <div className="flex-1 overflow-y-auto p-4">
-                {isLoading && <p>대화 목록을 불러오는 중...</p>}
-                {error && <p className="text-red-500">Error: {error}</p>}
-                {!isLoading && !error && filteredConversations.length === 0 && (
+                {conversations.length === 0 && (
                     <p className="text-medium-gray">대화가 없습니다.</p>
                 )}
-                {!isLoading && !error && filteredConversations.length > 0 && filteredConversations.map(conv => (
+                {filteredConversations.length > 0 && filteredConversations.map(conv => (
                     <div
                         key={conv.id}
                         className="p-3 mb-2 rounded-lg hover:bg-gray-50 cursor-pointer"
