@@ -96,7 +96,6 @@ const ChatPage = () => {
   useEffect(() => {
     const fetchMessages = async () => {
       if (conversationId) {
-        console.log(`Loading conversation: ${conversationId}`);
         try {
           const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
           const response = await fetch(`${API_BASE_URL}/conversations/${conversationId}/messages`, { // 메시지 가져오는 엔드포인트
@@ -117,9 +116,19 @@ const ChatPage = () => {
           }
 
           const data = await response.json();
-          // 백엔드 응답 구조에 따라 messages 배열을 설정합니다.
-          setMessages(data.messages || []); 
-          console.log(`Messages for ${conversationId}:`, data.messages);
+
+          // 각 메시지에 type 속성 추가
+          const typedMessages = data.map(msg => {
+            // content에 "[이미지]" 패턴이 포함되어 있으면 image 타입으로 간주
+            if (msg.content && msg.content.includes('[이미지]')) {
+              return { ...msg, type: 'image' };
+            }
+            // 그 외에는 text 타입으로 간주
+            return { ...msg, type: 'text' };
+          });
+
+          setMessages(typedMessages || []);
+          console.log(`Messages for ${conversationId}:`, typedMessages);
         } catch (err) {
           console.error(`Failed to load messages for ${conversationId}:`, err);
           alert(`대화 메시지를 불러오는데 실패했습니다: ${err.message}`);
