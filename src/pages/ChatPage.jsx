@@ -12,6 +12,7 @@ const ChatPage = () => {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Sidebar 상태 추가
   const [conversations, setConversations] = useState([]); // 대화 목록 상태 추가
+  const [currentConversationTitle, setCurrentConversationTitle] = useState('새 채팅'); // 현재 대화 제목 상태 추가
   const navigate = useNavigate(); // useNavigate 훅 사용
   const { conversationId } = useParams(); // URL 파라미터 읽기
 
@@ -94,54 +95,65 @@ const ChatPage = () => {
 
   // conversationId가 변경될 때마다 해당 대화 로드 (API 호출)
   useEffect(() => {
-    const fetchMessages = async () => {
+    const fetchMessagesAndTitle = async () => { // 함수 이름 변경
       if (conversationId) {
+        console.log(`Loading conversation: ${conversationId}`);
         try {
           const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
-          const response = await fetch(`${API_BASE_URL}/conversations/${conversationId}/messages`, { // 메시지 가져오는 엔드포인트
+          
+          // 1. 대화 메시지 가져오기
+          const messagesResponse = await fetch(`${API_BASE_URL}/conversations/${conversationId}/messages`, {
             method: 'GET',
             headers: {
               'accept': 'application/json',
             },
           });
 
-          if (response.status === 404) {
-            // 새 대화이거나 메시지가 없는 경우, 오류가 아니므로 메시지 목록을 비웁니다.
+          if (messagesResponse.status === 404) {
             setMessages([]);
-            return; // 404는 정상 케이스이므로 여기서 함수 종료
+          } else if (!messagesResponse.ok) {
+            throw new Error(`HTTP error! status: ${messagesResponse.status}`);
           }
 
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-
-          const data = await response.json();
-
-          // 각 메시지에 type 속성 추가
-          const typedMessages = data.map(msg => {
-            // content에 "[이미지]" 패턴이 포함되어 있으면 image 타입으로 간주
+          const messagesData = await messagesResponse.json();
+          const typedMessages = messagesData.map(msg => {
             if (msg.content && msg.content.includes('[이미지]')) {
               return { ...msg, type: 'image' };
             }
-            // 그 외에는 text 타입으로 간주
             return { ...msg, type: 'text' };
           });
-
           setMessages(typedMessages || []);
           console.log(`Messages for ${conversationId}:`, typedMessages);
+
+          // 2. 대화 제목 가져오기
+          const titleResponse = await fetch(`${API_BASE_URL}/conversations/${conversationId}`, {
+            method: 'GET',
+            headers: {
+              'accept': 'application/json',
+            },
+          });
+
+          if (!titleResponse.ok) {
+            throw new Error(`HTTP error! status: ${titleResponse.status}`);
+          }
+
+          const titleData = await titleResponse.json();
+          setCurrentConversationTitle(titleData.title || '새 채팅');
+
         } catch (err) {
-          console.error(`Failed to load messages for ${conversationId}:`, err);
-          alert(`대화 메시지를 불러오는데 실패했습니다: ${err.message}`);
-          setMessages([]); // 오류 발생 시 메시지 초기화
+          console.error(`Failed to load conversation ${conversationId}:`, err);
+          alert(`대화 정보를 불러오는데 실패했습니다: ${err.message}`);
+          setMessages([]);
+          setCurrentConversationTitle('새 채팅');
         }
       } else {
-        // conversationId가 없으면 (예: / 경로) 메시지 목록 비우기
         setMessages([]);
+        setCurrentConversationTitle('새 채팅');
       }
     };
 
-    fetchMessages();
-  }, [conversationId]); // conversationId가 변경될 때마다 실행
+    fetchMessagesAndTitle();
+  }, [conversationId]);
 
   // 컴포넌트 마운트 시 대화 목록 초기 로드
   useEffect(() => {
@@ -234,7 +246,7 @@ const ChatPage = () => {
           className="w-full h-screen bg-white overflow-hidden relative"
           style={{ '--keyboard-height': `${keyboardHeight}px` }}
       >
-        <Header onMenuClick={() => { setIsSidebarOpen(true); fetchConversations(); }} onNewChatClick={startNewConversation} /> {/* onMenuClick, onNewChatClick prop 추가 */}
+        <Header title={currentConversationTitle === '새 채팅' ? '🛫 여행자비스' : currentConversationTitle} onMenuClick={() => { setIsSidebarOpen(true); fetchConversations(); }} onNewChatClick={startNewConversation} /> {/* onMenuClick, onNewChatClick prop 추가 */}
         <MessageList messages={messages} />
         <ChatInput
             value={inputValue}
