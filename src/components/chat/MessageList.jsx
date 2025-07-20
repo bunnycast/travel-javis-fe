@@ -23,7 +23,7 @@ const MessageList = ({ messages = [] }) => {
         messages.map(msg => <Message key={msg.id} message={msg} />)
       ) : (
         <div className="flex justify-center items-center h-full">
-          <p className="text-gray-400">Javis에게 무엇이든 물어보세요.</p>
+          <p className="text-gray-400">여행자의 좋은 친구, 여행Javis에게 물어보세요!</p>
         </div>
       )}
       <div ref={messagesEndRef} /> {/* 스크롤 위치를 위한 빈 div */}

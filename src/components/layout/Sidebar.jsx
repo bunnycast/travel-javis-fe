@@ -21,7 +21,7 @@ const Sidebar = ({isOpen, onClose}) => {
         setError(null);
         try {
             // 실제 API 엔드포인트와 메서드, 바디 설정
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/conversations`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/conversations/`, {
                 method: 'GET', // GET 메서드
                 headers: {
                     'accept': 'application/json',
@@ -35,9 +35,10 @@ const Sidebar = ({isOpen, onClose}) => {
             }
 
             const data = await response.json();
+            console.log(data);
 
             setConversations(data.conversations);
-            console.log(data);
+
         } catch (err) {
             console.error("Failed to fetch conversations:", err);
             setError("대화 목록을 불러오는데 실패했습니다.");

@@ -7,11 +7,7 @@ import ChatInput from '../components/chat/ChatInput';
 import Sidebar from '../components/layout/Sidebar'; // Sidebar 임포트
 
 const ChatPage = () => {
-  const [messages, setMessages] = useState([
-    { id: 1, text: '안녕하세요! 첫 번째 메시지입니다.', sender: 'bot', type: 'text' },
-    { id: 2, text: '네, 안녕하세요! 사용자의 메시지입니다.', sender: 'user', type: 'text' },
-    { id: 3, text: '이곳에 지도를 표시할 수 있습니다.', sender: 'bot', type: 'map' },
-  ]);
+  const [messages, setMessages] = useState([]); // 초기 메시지 빈 배열로 설정
   const [inputValue, setInputValue] = useState('');
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Sidebar 상태 추가
@@ -19,15 +15,39 @@ const ChatPage = () => {
   const { conversationId } = useParams(); // URL 파라미터 읽기
 
   // 새로운 대화 시작 함수
-  const startNewConversation = () => {
+  const startNewConversation = async () => {
     if (isSidebarOpen) {
       setIsSidebarOpen(false); // 사이드바가 열려있으면 닫기
     }
-    const newId = uuidv4(); // 난수 ID 생성
-    navigate(`/chat/${newId}`); // 난수 ID를 포함한 URL로 이동
-    setMessages([]); // 새 대화이므로 메시지 초기화
-    setInputValue('');
-    // TODO: 백엔드에 새 대화 생성 요청 (newId 전달)
+
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+      const response = await fetch(`${API_BASE_URL}/conversations/`, { // 백엔드 엔드포인트
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+        },
+        body: JSON.stringify({}), // 빈 바디 전송
+      });
+
+      console.log(response);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const newId = data.conversation_id; // 백엔드에서 반환하는 새로운 대화 ID
+
+      navigate(`/chat/${newId}`); // 새로운 대화 ID를 포함한 URL로 이동
+      setMessages([]); // 새 대화이므로 메시지 초기화
+      setInputValue('');
+      console.log("새 대화 생성 성공:", data);
+
+    } catch (err) {
+      console.error("새 대화 생성 실패:", err);
+      alert(`새 대화 생성 실패: ${err.message}`);
+    }
   };
 
   useEffect(() => {
@@ -50,62 +70,155 @@ const ChatPage = () => {
 
   // conversationId가 변경될 때마다 해당 대화 로드 (API 호출)
   useEffect(() => {
-    if (conversationId) {
-      console.log(`Loading conversation: ${conversationId}`);
-      // TODO: 백엔드 API를 호출하여 해당 conversationId의 메시지 로드
-      // setMessages(loadedMessages);
-    } else {
-      // conversationId가 없으면 (예: / 경로) 새 대화 시작
-      // startNewConversation(); // 필요하다면 자동으로 새 대화 시작
-    }
-  }, [conversationId]); // conversationId가 변경될 때마다 실행
+    const fetchMessages = async () => {
+      if (conversationId) {
+        console.log(`Loading conversation: ${conversationId}`);
+        try {
+          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+          const response = await fetch(`${API_BASE_URL}/conversations/${conversationId}/messages`, { // 메시지 가져오는 엔드포인트
+            method: 'GET',
+            headers: {
+              'accept': 'application/json',
+            },
+          });
 
-  const handleSendMessage = (text, image = null) => {
-    if (text.trim() === '' && !image) return; // 텍스트도 없고 이미지도 없으면 전송하지 않음
+          if (response.status === 404) {
+            // 새 대화이거나 메시지가 없는 경우, 오류가 아니므로 메시지 목록을 비웁니다.
+            setMessages([]);
+            return; // 404는 정상 케이스이므로 여기서 함수 종료
+          }
 
-    const newMessage = {
-      id: messages.length + 1,
-      text: text,
-      sender: 'user',
-      type: image ? 'image' : 'text', // 이미지 타입 추가
-      image: image, // 이미지 데이터 추가
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          // 백엔드 응답 구조에 따라 messages 배열을 설정합니다.
+          setMessages(data.messages || []); 
+          console.log(`Messages for ${conversationId}:`, data.messages);
+        } catch (err) {
+          console.error(`Failed to load messages for ${conversationId}:`, err);
+          alert(`대화 메시지를 불러오는데 실패했습니다: ${err.message}`);
+          setMessages([]); // 오류 발생 시 메시지 초기화
+        }
+      } else {
+        // conversationId가 없으면 (예: / 경로) 메시지 목록 비우기
+        setMessages([]);
+      }
     };
 
+    fetchMessages();
+  }, [conversationId]); // conversationId가 변경될 때마다 실행
+
+  const handleSendMessage = async (text, imageFile = null) => {
+    if (text.trim() === '' && !imageFile) return;
+
+    // 1. 사용자 메시지를 화면에 즉시 표시
+    const newMessage = {
+      id: uuidv4(), // 고유 ID 생성
+      text: text,
+      sender: 'user',
+      type: imageFile ? 'image' : 'text',
+      image: imageFile ? URL.createObjectURL(imageFile) : null, // 미리보기를 위한 URL 생성
+    };
     setMessages(prevMessages => [...prevMessages, newMessage]);
     setInputValue('');
-    // TODO: 백엔드에 메시지 전송 요청 (이미지 포함)
+
+    // 2. API 호출
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+    let endpoint = '';
+    let options = {};
+
+    if (imageFile) {
+      // 이미지가 있는 경우: /analyze/ API 호출
+      endpoint = `${API_BASE_URL}/analyze/`;
+      const formData = new FormData();
+      formData.append('image', imageFile);
+      formData.append('question', text);
+      formData.append('conversation_id', conversationId);
+      
+      options = {
+        method: 'POST',
+        body: formData,
+        // multipart/form-data의 경우 Content-Type 헤더를 브라우저가 자동으로 설정하도록 둡니다.
+      };
+
+    } else {
+      // 텍스트만 있는 경우: /chat/ API 호출
+      endpoint = `${API_BASE_URL}/chat/`;
+      options = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'accept': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: text,
+          conversation_id: conversationId,
+        }),
+      };
+    }
+
+    try {
+      const response = await fetch(endpoint, options);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('API 응답:', data);
+
+      // 3. 봇의 응답 메시지를 화면에 표시
+      const botMessageText = data.answer || data.content;
+      if (botMessageText) {
+        const botMessage = {
+          id: uuidv4(),
+          text: botMessageText,
+          sender: 'bot',
+          type: 'text',
+        };
+        setMessages(prevMessages => [...prevMessages, botMessage]);
+      } else {
+        console.error('API 응답에 content 또는 answer 필드가 없습니다:', data);
+      }
+
+    } catch (err) {
+      console.error("API 호출 실패:", err);
+      alert(`메시지 전송에 실패했습니다: ${err.message}`);
+      // TODO: 실패 시 메시지 상태 변경 (예: '전송 실패' 표시)
+    }
   };
 
   return (
-    <div
-      className="w-full h-screen bg-white overflow-hidden relative"
-      style={{ '--keyboard-height': `${keyboardHeight}px` }}
-    >
-      <Header onMenuClick={() => setIsSidebarOpen(true)} onNewChatClick={startNewConversation} /> {/* onMenuClick, onNewChatClick prop 추가 */}
-      <MessageList messages={messages} />
-      <ChatInput
-        value={inputValue}
-        onChange={(val) => {
-          // val이 이벤트 객체인지 문자열인지 확인하여 처리
-          if (typeof val === 'string') {
-            setInputValue(val);
-          } else if (val && val.target) {
-            setInputValue(val.target.value);
-          }
-        }}
-        onSend={(text, image) => handleSendMessage(text, image)} // onSend prop 변경
-      />
-      {/* Sidebar 컴포넌트 추가 */}
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <div
+          className="w-full h-screen bg-white overflow-hidden relative"
+          style={{ '--keyboard-height': `${keyboardHeight}px` }}
+      >
+        <Header onMenuClick={() => setIsSidebarOpen(true)} onNewChatClick={startNewConversation} /> {/* onMenuClick, onNewChatClick prop 추가 */}
+        <MessageList messages={messages} />
+        <ChatInput
+            value={inputValue}
+            onChange={(val) => {
+              // val이 이벤트 객체인지 문자열인지 확인하여 처리
+              if (typeof val === 'string') {
+                setInputValue(val);
+              } else if (val && val.target) {
+                setInputValue(val.target.value);
+              }
+            }}
+            onSend={(text, image) => handleSendMessage(text, image)} // onSend prop 변경
+        />
+        {/* Sidebar 컴포넌트 추가 */}
+        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      {/* Sidebar 오버레이 (투명) */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-transparent z-10"
-          onClick={() => setIsSidebarOpen(false)}
-        ></div>
-      )}
-    </div>
+        {/* Sidebar 오버레이 (투명) */}
+        {isSidebarOpen && (
+            <div
+                className="fixed inset-0 bg-transparent z-10"
+                onClick={() => setIsSidebarOpen(false)}
+            ></div>
+        )}
+      </div>
   );
 };
 

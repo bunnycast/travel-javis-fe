@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 
 const useImageAttachment = () => {
@@ -17,33 +16,31 @@ const useImageAttachment = () => {
         img.onload = () => {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
-          
-          // 썸네일 크기 설정 (320x120px 권장)
-          const targetWidth = 320;
-          const targetHeight = 120;
 
-          // 비율 유지하며 크롭 (가운데 기준)
-          const aspectRatio = img.width / img.height;
-          let sx, sy, sWidth, sHeight;
+          const MAX_SIZE = 150; // 최대 길이 (px)
 
-          if (aspectRatio > targetWidth / targetHeight) {
-            // 원본 이미지가 타겟보다 가로로 길 때
-            sHeight = img.height;
-            sWidth = sHeight * (targetWidth / targetHeight);
-            sx = (img.width - sWidth) / 2;
-            sy = 0;
+          let width = img.width;
+          let height = img.height;
+
+          // 이미지의 가장 긴 변을 MAX_SIZE에 맞추고, 다른 변은 비율에 맞춰 조정
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height *= MAX_SIZE / width;
+              width = MAX_SIZE;
+            }
           } else {
-            // 원본 이미지가 타겟보다 세로로 길 때
-            sWidth = img.width;
-            sHeight = sWidth * (targetHeight / targetWidth);
-            sy = (img.height - sHeight) / 2;
-            sx = 0;
+            if (height > MAX_SIZE) {
+              width *= MAX_SIZE / height;
+              height = MAX_SIZE;
+            }
           }
 
-          canvas.width = targetWidth;
-          canvas.height = targetHeight;
+          canvas.width = width;
+          canvas.height = height;
 
-          ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
+          // 이미지를 캔버스에 그리기 (크롭 없이 리사이징)
+          ctx.drawImage(img, 0, 0, width, height);
+
           setSelectedImageThumbnail(canvas.toDataURL('image/jpeg', 0.8)); // JPEG 형식으로 변환
         };
         img.src = e.target.result;

@@ -79,7 +79,7 @@ const ChatInput = ({ value, onChange, onSend }) => {
       <footer className="fixed bottom-0 inset-x-0 mx-auto max-w-md p-4 bg-white border-t pb-[calc(1rem+var(--keyboard-height, 0px))] z-20">
         {selectedImageThumbnail && (
             <div className="relative mb-2 w-full flex items-center justify-between p-2 bg-gray-100 rounded-lg">
-              <img src={selectedImageThumbnail} alt="미리보기" className="max-w-full h-24 object-cover rounded-md" />
+              <img src={selectedImageThumbnail} alt="미리보기" className="max-w-full h-24 object-contain rounded-md" />
               <button
                   onClick={handleRemoveImage}
                   className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold"
