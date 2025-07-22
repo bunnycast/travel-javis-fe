@@ -131,7 +131,7 @@ const ChatPage = () => {
           console.log(API_BASE_URL)
           
           // 1. 대화 메시지 가져오기
-          const messagesResponse = await fetch(`${API_BASE_URL}/conversations/${conversationId}/messages`, {
+          const messagesResponse = await fetch(`${API_BASE_URL}/conversations/${conversationId}/full`, {
             method: 'GET',
             headers: {
               'accept': 'application/json',
