@@ -3,3 +3,4 @@ dist
 .DS_store
 .idea/
 .env.development
+.env.main

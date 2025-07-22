@@ -20,7 +20,7 @@ const ChatPage = () => {
   const fetchCurrentConversationTitle = async () => {
     if (conversationId) {
       try {
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
         const response = await fetch(`${API_BASE_URL}/conversations/${conversationId}`, {
           method: 'GET',
           headers: {
@@ -46,7 +46,7 @@ const ChatPage = () => {
   // 대화 목록을 불러오는 함수
   const fetchConversations = async () => {
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
       const response = await fetch(`${API_BASE_URL}/conversations/`, {
         method: 'GET',
         headers: {
@@ -73,7 +73,7 @@ const ChatPage = () => {
     }
 
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
       const response = await fetch(`${API_BASE_URL}/conversations/`, { // 백엔드 엔드포인트
         method: 'POST',
         headers: {
@@ -126,7 +126,7 @@ const ChatPage = () => {
       if (conversationId) {
         console.log(`Loading conversation: ${conversationId}`);
         try {
-          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
           
           // 1. 대화 메시지 가져오기
           const messagesResponse = await fetch(`${API_BASE_URL}/conversations/${conversationId}/messages`, {
@@ -191,6 +191,34 @@ const ChatPage = () => {
   const handleSendMessage = async (text, imageFile = null) => {
     if (text.trim() === '' && !imageFile) return;
 
+    // conversationId가 없으면 새 대화를 시작합니다.
+    let currentConvId = conversationId;
+    if (!currentConvId) {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+        const response = await fetch(`${API_BASE_URL}/conversations/`, {
+          method: 'POST',
+          headers: {
+            'accept': 'application/json',
+          },
+          body: JSON.stringify({}),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        currentConvId = data.conversation_id;
+        navigate(`/chat/${currentConvId}`); // 새 ID로 URL 업데이트
+        console.log("새 대화 생성 및 ID 설정:", currentConvId);
+      } catch (err) {
+        console.error("새 대화 생성 실패:", err);
+        alert(`새 대화 생성 실패: ${err.message}`);
+        return; // 새 대화 생성 실패 시 메시지 전송 중단
+      }
+    }
+
     // 1. 사용자 메시지를 화면에 즉시 표시
     const newMessage = {
       id: uuidv4(), // 고유 ID 생성
@@ -203,7 +231,7 @@ const ChatPage = () => {
     setInputValue('');
 
     // 2. API 호출
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     let endpoint = '';
     let options = {};
 
@@ -213,7 +241,7 @@ const ChatPage = () => {
       const formData = new FormData();
       formData.append('image', imageFile);
       formData.append('question', text);
-      formData.append('conversation_id', conversationId);
+      formData.append('conversation_id', currentConvId); // 업데이트된 ID 사용
       
       options = {
         method: 'POST',
@@ -232,7 +260,7 @@ const ChatPage = () => {
         },
         body: JSON.stringify({
           prompt: text,
-          conversation_id: conversationId,
+          conversation_id: currentConvId, // 업데이트된 ID 사용
         }),
       };
     }

@@ -124,7 +124,7 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
             const newTitle = prompt("새로운 대화 제목을 입력하세요:", "새 제목");
             if (newTitle !== null && newTitle.trim() !== '') {
                 try {
-                    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+                    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
                     const response = await fetch(`${API_BASE_URL}/conversations/${selectedConversationId}`, {
                         method: 'PUT',
                         headers: {
@@ -154,7 +154,7 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
     const handleDeleteConversation = async () => {
         if (selectedConversationId && window.confirm("정말로 이 대화를 삭제하시겠습니까?")) {
             try {
-                const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+                const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
                 const response = await fetch(`${API_BASE_URL}/conversations/${selectedConversationId}`, {
                     method: 'DELETE',
                     headers: {
