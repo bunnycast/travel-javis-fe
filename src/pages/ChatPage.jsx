@@ -47,13 +47,14 @@ const ChatPage = () => {
   const fetchConversations = async () => {
     try {
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+      console.log(import.meta.env.VITE_API_BASE_URL)
       const response = await fetch(`${API_BASE_URL}/conversations/`, {
         method: 'GET',
         headers: {
           'accept': 'application/json',
         },
       });
-
+      console.log(API_BASE_URL);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -127,6 +128,7 @@ const ChatPage = () => {
         console.log(`Loading conversation: ${conversationId}`);
         try {
           const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+          console.log(API_BASE_URL)
           
           // 1. 대화 메시지 가져오기
           const messagesResponse = await fetch(`${API_BASE_URL}/conversations/${conversationId}/messages`, {
