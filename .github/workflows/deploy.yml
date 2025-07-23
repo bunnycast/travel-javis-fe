@@ -41,14 +41,14 @@ jobs:
           echo "NCLOUD_ACCESS_KEY=${{ secrets.NCLOUD_ACCESS_KEY }}" >> $GITHUB_ENV
           echo "NCLOUD_SECRET_KEY=${{ secrets.NCLOUD_SECRET_KEY }}" >> $GITHUB_ENV
           sudo mkdir -p /home/runner/.ncloud
-          sudo bash -c 'printf "[default]\nncloud_access_key_id = %s\nncloud_secret_access_key = %s\nregion = kr\n" "$NCP_ACCESS_KEY" "$NCP_SECRET_KEY" > /home/runner/.ncloud/config'
+          printf '[default]\nncloud_access_key_id = %s\nncloud_secret_access_key = %s\nregion = kr\n' "$NCP_ACCESS_KEY" "$NCP_SECRET_KEY" | sudo tee /home/runner/.ncloud/configure > /dev/null
           sudo chmod 777 /home/runner/.ncloud/configure
 
       - name: Configure kubeconfig
         run: |
-          sudo mkdir -p ~/.kube
-          sudo echo "${{ secrets.KUBE_CONFIG_B64 }}" | base64 -d > ~/.kube/config
-          sudo chmod 777 ~/.kube/config
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG_B64 }}" | base64 -d | tee ~/.kube/config > /dev/null
+          chmod 600 ~/.kube/config
 
       - name: Deploy to Kubernetes
         run: |
