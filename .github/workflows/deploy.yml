@@ -33,19 +33,24 @@ jobs:
           sudo chmod +x /usr/local/bin/ncp-iam-authenticator
 
       - name: Prepare Ncloud credentials
+        env:
+          NCP_ACCESS_KEY: ${{ secrets.NCP_ACCESS_KEY }}
+          NCP_SECRET_KEY: ${{ secrets.NCP_SECRET_KEY }}
         run: |
           mkdir -p /home/runner/.ncloud
-          cat <<EOF > /home/runner/.ncloud/configure
-          [default]
-          access_key = ${{ secrets.NCP_ACCESS_KEY }}
-          secret_key = ${{ secrets.NCP_SECRET_KEY }}
-          region     = kr
-          EOF
+          cat > /home/runner/.ncloud/configure <<CFG
+[default]
+access_key = ${NCP_ACCESS_KEY}
+secret_key = ${NCP_SECRET_KEY}
+region     = kr
+CFG
+          chmod 600 /home/runner/.ncloud/configure
 
       - name: Configure kubeconfig
         run: |
           mkdir -p /home/runner/.kube
           echo "${{ secrets.KUBE_CONFIG_B64 }}" | base64 -d > /home/runner/.kube/config
+          chmod 600 /home/runner/.kube/config
 
       - name: Deploy to Kubernetes
         env:
