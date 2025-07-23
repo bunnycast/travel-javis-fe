@@ -33,11 +33,6 @@ jobs:
           chmod +x ncp-iam-authenticator
           sudo mv ncp-iam-authenticator /usr/local/bin/ncp-iam-authenticator
 
-      - name: Configure kubeconfig
-        run: |
-          mkdir -p /home/runner/.kube
-          echo "${{ secrets.KUBE_CONFIG_B64 }}" | base64 -d > /home/runner/.kube/config
-
       - name: Deploy to Kubernetes
         env:
           NCP_ACCESS_KEY: ${{ secrets.NCP_ACCESS_KEY }}
