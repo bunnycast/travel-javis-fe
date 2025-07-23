@@ -1,5 +1,5 @@
 # .github/workflows/deploy.yml
-name: CI/CD Deploy to NKS
+name: CI/CD Deploy Frontend to NKS
 
 on:
   push:
@@ -8,51 +8,49 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
+    env:
+      IMAGE_NAME: rosco0611/javis-fe
+      IMAGE_TAG: latest
+
     steps:
+      # 1) 코드 체크아웃
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2) Docker Hub 로그인
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      - name: Build Docker image (Frontend)
-        run: docker build -t rosco0611/javis-fe:latest "$GITHUB_WORKSPACE"
+      # 3) Docker 이미지 빌드
+      - name: Build Docker image
+        run: docker build -t $IMAGE_NAME:$IMAGE_TAG "$GITHUB_WORKSPACE"
 
-      - name: Push Docker image (Frontend)
-        run: docker push rosco0611/javis-fe:latest
+      # 4) Docker 이미지 Push
+      - name: Push Docker image
+        run: docker push $IMAGE_NAME:$IMAGE_TAG
 
+      # 5) kubectl 설치
       - name: Install kubectl
         run: |
           curl -LO "https://dl.k8s.io/release/v1.27.1/bin/linux/amd64/kubectl"
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/kubectl
 
-      - name: Install NCP IAM Authenticator
-        run: |
-          sudo curl -L -o /usr/local/bin/ncp-iam-authenticator https://github.com/NaverCloudPlatform/ncp-iam-authenticator/releases/latest/download/ncp-iam-authenticator_linux_amd64
-          sudo chmod +x /usr/local/bin/ncp-iam-authenticator
-
-      - name: Prepare Ncloud credentials
-        run: |
-          mkdir -p /home/runner/.ncloud
-          cat <<EOF > /home/runner/.ncloud/configure
-          [default]
-          access_key = ${{ secrets.NCP_ACCESS_KEY }}
-          secret_key = ${{ secrets.NCP_SECRET_KEY }}
-          region     = kr
-          EOF
-
+      # 6) ServiceAccount 토큰 기반 kubeconfig 배치
       - name: Configure kubeconfig
         run: |
           mkdir -p /home/runner/.kube
           echo "${{ secrets.KUBE_CONFIG_B64 }}" | base64 -d > /home/runner/.kube/config
+          chmod 600 /home/runner/.kube/config
 
+      # 7) Kubernetes 매니페스트 적용
       - name: Deploy to Kubernetes
-        env:
-          NCP_ACCESS_KEY: ${{ secrets.NCP_ACCESS_KEY }}
-          NCP_SECRET_KEY: ${{ secrets.NCP_SECRET_KEY }}
         run: |
           kubectl apply -f "$GITHUB_WORKSPACE/k8s/clusterissuer.yaml"
           kubectl apply -f "$GITHUB_WORKSPACE/k8s/backend.yaml"
           kubectl apply -f "$GITHUB_WORKSPACE/k8s/frontend.yaml"
           kubectl apply -f "$GITHUB_WORKSPACE/k8s/ingress.yaml"
+
+          # 롤아웃 완료 확인(프론트)
+          kubectl rollout status deployment/javis-fe
