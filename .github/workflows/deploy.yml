@@ -1,0 +1,49 @@
+# .github/workflows/deploy.yml
+name: CI/CD Deploy to NKS
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Build Docker image (Frontend)
+        run: docker build -t rosco0611/javis-fe:latest "$GITHUB_WORKSPACE"
+
+      - name: Push Docker image (Frontend)
+        run: docker push rosco0611/javis-fe:latest
+
+      - name: Install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/v1.27.1/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/kubectl
+
+      - name: Install NCP IAM Authenticator
+        run: |
+          curl -L -o ncp-iam-authenticator https://github.com/NaverCloudPlatform/ncp-iam-authenticator/releases/download/v1.0.6/ncp-iam-authenticator_linux_amd64
+          chmod +x ncp-iam-authenticator
+          sudo mv ncp-iam-authenticator /usr/local/bin/ncp-iam-authenticator
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p /home/runner/.kube
+          echo "${{ secrets.KUBE_CONFIG_B64 }}" | base64 -d > /home/runner/.kube/config
+
+      - name: Deploy to Kubernetes
+        env:
+          NCP_ACCESS_KEY: ${{ secrets.NCP_ACCESS_KEY }}
+          NCP_SECRET_KEY: ${{ secrets.NCP_SECRET_KEY }}
+        run: |
+          kubectl apply -f "$GITHUB_WORKSPACE/k8s/clusterissuer.yaml"
+          kubectl apply -f "$GITHUB_WORKSPACE/k8s/backend.yaml"
+          kubectl apply -f "$GITHUB_WORKSPACE/k8s/frontend.yaml"
+          kubectl apply -f "$GITHUB_WORKSPACE/k8s/ingress.yaml"
