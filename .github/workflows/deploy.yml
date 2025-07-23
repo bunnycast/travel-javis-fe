@@ -29,24 +29,28 @@ jobs:
 
       - name: Install NCP IAM Authenticator
         run: |
-          sudo curl -L -o /usr/local/bin/ncp-iam-authenticator https://github.com/NaverCloudPlatform/ncp-iam-authenticator/releases/latest/download/ncp-iam-authenticator_linux_amd64
+          sudo curl -L -o /usr/local/bin/ncp-iam-authenticator \
+            https://github.com/NaverCloudPlatform/ncp-iam-authenticator/releases/latest/download/ncp-iam-authenticator_linux_amd64
           sudo chmod +x /usr/local/bin/ncp-iam-authenticator
 
-      - name: Enable NCP IAM environment variables
-        run: |
-          echo "NCLOUD_ACCESS_KEY=${{ secrets.NCP_ACCESS_KEY }}" >> $GITHUB_ENV
-          echo "NCLOUD_SECRET_KEY=${{ secrets.NCP_SECRET_KEY }}" >> $GITHUB_ENV
-
-      - name: Configure kubeconfig
-        run: |
-          mkdir -p /home/runner/.kube
-          echo "${{ secrets.KUBE_CONFIG_B64 }}" | base64 -d > /home/runner/.kube/config
-          chmod 600 /home/runner/.kube/config
-
-      - name: Deploy to Kubernetes
+      - name: Prepare Ncloud credentials
         env:
           NCP_ACCESS_KEY: ${{ secrets.NCP_ACCESS_KEY }}
           NCP_SECRET_KEY: ${{ secrets.NCP_SECRET_KEY }}
+        run: |
+          echo "NCLOUD_ACCESS_KEY=${{ secrets.NCLOUD_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "NCLOUD_SECRET_KEY=${{ secrets.NCLOUD_SECRET_KEY }}" >> $GITHUB_ENV
+          sudo mkdir -p /home/runner/.ncloud
+          sudo bash -c 'printf "[default]\nncloud_access_key_id = %s\nncloud_secret_access_key = %s\nregion = kr\n" "$NCP_ACCESS_KEY" "$NCP_SECRET_KEY" > /home/runner/.ncloud/config'
+          sudo chmod 777 /home/runner/.ncloud/configure
+
+      - name: Configure kubeconfig
+        run: |
+          sudo mkdir -p ~/.kube
+          sudo echo "${{ secrets.KUBE_CONFIG_B64 }}" | base64 -d > ~/.kube/config
+          sudo chmod 777 ~/.kube/config
+
+      - name: Deploy to Kubernetes
         run: |
           kubectl apply -f "$GITHUB_WORKSPACE/k8s/clusterissuer.yaml"
           kubectl apply -f "$GITHUB_WORKSPACE/k8s/backend.yaml"
