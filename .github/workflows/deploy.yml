@@ -38,13 +38,13 @@ jobs:
           NCP_SECRET_KEY: ${{ secrets.NCP_SECRET_KEY }}
         run: |
           mkdir -p /home/runner/.ncloud
-          cat > /home/runner/.ncloud/configure <<CFG
+          cat > /home/runner/.ncloud/config <<CFG
           [default]
           access_key = ${NCP_ACCESS_KEY}
           secret_key = ${NCP_SECRET_KEY}
           region     = kr
           CFG
-          chmod 600 /home/runner/.ncloud/configure
+          chmod 600 /home/runner/.ncloud/config
 
       - name: Configure kubeconfig
         run: |
