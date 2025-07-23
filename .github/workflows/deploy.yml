@@ -29,8 +29,8 @@ jobs:
 
       - name: Install NCP IAM Authenticator
         run: |
-          curl -o ncp-iam-authenticator -L https://github.com/NaverCloudPlatform/ncp-iam-authenticator/releases/latest/download/ncp-iam-authenticator_linux_amd64
-          chmod +x /usr/local/bin/ncp-iam-authenticator
+          sudo curl -L -o /usr/local/bin/ncp-iam-authenticator https://github.com/NaverCloudPlatform/ncp-iam-authenticator/releases/latest/download/ncp-iam-authenticator_linux_amd64
+          sudo chmod +x /usr/local/bin/ncp-iam-authenticator
           file /usr/local/bin/ncp-iam-authenticator
 
       - name: Configure kubeconfig
