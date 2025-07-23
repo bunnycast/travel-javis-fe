@@ -32,15 +32,10 @@ jobs:
           sudo curl -L -o /usr/local/bin/ncp-iam-authenticator https://github.com/NaverCloudPlatform/ncp-iam-authenticator/releases/latest/download/ncp-iam-authenticator_linux_amd64
           sudo chmod +x /usr/local/bin/ncp-iam-authenticator
 
-      - name: Prepare Ncloud credentials
-        env:
-          NCP_ACCESS_KEY: ${{ secrets.NCP_ACCESS_KEY }}
-          NCP_SECRET_KEY: ${{ secrets.NCP_SECRET_KEY }}
+      - name: Set NCP credentials as env (for authenticator)
         run: |
-          mkdir -p /home/runner/.ncloud
-          printf '[default]\naccess_key = %s\nsecret_key = %s\nregion     = kr\n' \
-            "$NCP_ACCESS_KEY" "$NCP_SECRET_KEY" > /home/runner/.ncloud/config
-          chmod 600 /home/runner/.ncloud/config
+          echo "NCLOUD_ACCESS_KEY=${{ secrets.NCP_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "NCLOUD_SECRET_KEY=${{ secrets.NCP_SECRET_KEY }}" >> $GITHUB_ENV
 
       - name: Configure kubeconfig
         run: |
