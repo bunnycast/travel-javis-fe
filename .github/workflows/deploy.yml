@@ -1,5 +1,5 @@
 # .github/workflows/deploy.yml
-name: CI/CD Deploy to NKS
+name: CI/CD Deploy Frontend to NKS
 
 on:
   push:
