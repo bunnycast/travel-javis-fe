@@ -17,6 +17,7 @@ spec:
       containers:
       - name: fastapi-backend
         image: rosco0611/fastapi-backend:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
         envFrom:
