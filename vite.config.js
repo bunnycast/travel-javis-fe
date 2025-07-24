@@ -7,8 +7,10 @@ export default defineConfig({
   server: {
     host: true, // 모든 네트워크 인터페이스에서 접근 허용
     proxy: {
-      "/api": ["http://127.0.0.1:8000", "https://javis.shop/api"],
-      "changeOrigin": true,
+      '/api': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
     }
   },
 })
