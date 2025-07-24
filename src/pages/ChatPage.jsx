@@ -129,7 +129,7 @@ const ChatPage = () => {
         try {
           const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
           console.log(API_BASE_URL)
-          
+
           // 1. 대화 메시지 가져오기
           const messagesResponse = await fetch(`${API_BASE_URL}/conversations/${conversationId}/full`, {
             method: 'GET',
@@ -246,7 +246,7 @@ const ChatPage = () => {
       formData.append('image', imageFile);
       formData.append('question', text);
       formData.append('conversation_id', currentConvId); // 업데이트된 ID 사용
-      
+
       options = {
         method: 'POST',
         body: formData,
@@ -284,41 +284,22 @@ const ChatPage = () => {
       const botMessageContent = data.answer || data.content; // 백엔드 응답에서 answer 또는 content 필드 사용
       let botMessage = null;
 
-      // 백엔드 응답이 JSON 형식일 수 있으므로 파싱 시도
-      try {
-        const parsedBotResponse = JSON.parse(botMessageContent);
-
-        // 'route' 액션 처리
-        if (parsedBotResponse.action === 'route' && parsedBotResponse.origin && parsedBotResponse.destination) {
-          const routeData = {
-            "route_url": "https://map.naver.com/v5/directions/%EC%84%9C%EC%9A%B8%ED%8A%B8%EB%B3%84%EC%8B%9C+%EC%9A%A9%EC%82%B0%EA%B5%AC+%EB%82%A8%EC%82%B0%EA%B3%B5%EC%9B%90%EA%B8%B8+105/%EB%B6%80%EC%82%B0%EA%B4%91%EC%97%AD%EC%8B%9C+%EC%88%98%EC%98%81%EA%B5%AC+%EA%B4%91%EC%95%88%ED%95%B4%EB%B3%84%EB%A1%9C+219?pathType=0",
-            "distance": "410.8km",
-            "duration": "246998분",
-            "transport_mode": "car"
-          };
-          botMessage = {
-            id: uuidv4(),
-            sender: 'bot',
-            type: 'route',
-            route_data: routeData,
-            content: `"${parsedBotResponse.origin}"에서 "${parsedBotResponse.destination}"까지의 경로입니다.`,
-          };
-        } else {
-          // JSON 파싱은 성공했으나 'route' 액션이 아닌 경우 (일반 텍스트로 처리)
-          botMessage = {
-            id: uuidv4(),
-            sender: 'bot',
-            type: 'text',
-            content: botMessageContent, // content 필드 사용
-          };
-        }
-      } catch (e) {
-        // JSON 파싱 실패 시 (LLM이 일반 텍스트로 응답한 경우)
+      // 백엔드에서 route_data를 파싱해서 보내주므로, 여기서는 data.route_data를 직접 사용
+      if (data.route_data) { // data.route_data가 있는지 확인
+        botMessage = {
+          id: uuidv4(),
+          sender: 'bot',
+          type: 'route',
+          route_data: data.route_data,
+          content: botMessageContent,
+        };
+      } else {
+        // route_data가 없는 경우 (일반 텍스트 응답)
         botMessage = {
           id: uuidv4(),
           sender: 'bot',
           type: 'text',
-          content: botMessageContent, // content 필드 사용
+          content: botMessageContent,
         };
       }
 
