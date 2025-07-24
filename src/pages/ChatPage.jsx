@@ -146,13 +146,12 @@ const ChatPage = () => {
 
           const messagesData = await messagesResponse.json();
           const typedMessages = (Array.isArray(messagesData.messages) ? messagesData.messages : []).map(msg => {
+            // 백엔드에서 이미 type 필드를 보내주므로 그대로 사용
+            // image_url이 있으면 type을 'image'로 강제하고, 없으면 백엔드 type 사용
             if (msg.image_url) {
-              return { ...msg, type: 'image', image: msg.image_url };
+              return { ...msg, type: 'image' }; // image 필드 대신 image_url 사용
             }
-            if (msg.content && msg.content.includes('[이미지]')) {
-              return { ...msg, type: 'image', image: '' }; // Fallback, if image_url is not provided
-            }
-            return { ...msg, type: 'text' };
+            return { ...msg, type: msg.type || 'text' }; // 백엔드에서 받은 type을 사용하거나 기본값 'text'
           });
           setMessages(typedMessages || []);
           console.log(`Messages for ${conversationId}:`, typedMessages);
@@ -227,10 +226,10 @@ const ChatPage = () => {
     // 1. 사용자 메시지를 화면에 즉시 표시
     const newMessage = {
       id: uuidv4(), // 고유 ID 생성
-      text: text,
+      content: text, // <-- text 대신 content 필드 사용
       sender: 'user',
       type: imageFile ? 'image' : 'text',
-      image: imageFile ? URL.createObjectURL(imageFile) : null, // 미리보기를 위한 URL 생성
+      image_url: imageFile ? URL.createObjectURL(imageFile) : null, // image 대신 image_url 필드 사용
     };
     setMessages(prevMessages => [...prevMessages, newMessage]);
     setInputValue('');
@@ -282,46 +281,44 @@ const ChatPage = () => {
       console.log('API 응답:', data);
 
       // 3. 봇의 응답 메시지를 화면에 표시
-      const botMessageContent = data.answer || data.content;
+      const botMessageContent = data.answer || data.content; // 백엔드 응답에서 answer 또는 content 필드 사용
       let botMessage = null;
 
+      // 백엔드 응답이 JSON 형식일 수 있으므로 파싱 시도
       try {
-        // LLM 응답이 JSON 형식인지 파싱 시도
         const parsedBotResponse = JSON.parse(botMessageContent);
 
-        // 파싱된 JSON에 'action: "route"'와 필요한 필드가 있는지 확인
+        // 'route' 액션 처리
         if (parsedBotResponse.action === 'route' && parsedBotResponse.origin && parsedBotResponse.destination) {
-          // 경로 안내 요청인 경우: /route API 호출 대신 샘플 데이터 사용
           const routeData = {
             "route_url": "https://map.naver.com/v5/directions/%EC%84%9C%EC%9A%B8%ED%8A%B8%EB%B3%84%EC%8B%9C+%EC%9A%A9%EC%82%B0%EA%B5%AC+%EB%82%A8%EC%82%B0%EA%B3%B5%EC%9B%90%EA%B8%B8+105/%EB%B6%80%EC%82%B0%EA%B4%91%EC%97%AD%EC%8B%9C+%EC%88%98%EC%98%81%EA%B5%AC+%EA%B4%91%EC%95%88%ED%95%B4%EB%B3%84%EB%A1%9C+219?pathType=0",
             "distance": "410.8km",
             "duration": "246998분",
             "transport_mode": "car"
           };
-
           botMessage = {
             id: uuidv4(),
             sender: 'bot',
-            type: 'route', // 메시지 타입은 'route'
-            route_data: routeData, // 샘플 경로 데이터를 직접 저장
-            content: `"${parsedBotResponse.origin}"에서 "${parsedBotResponse.destination}"까지의 경로입니다.`, // 사용자에게 보여줄 텍스트 설명
+            type: 'route',
+            route_data: routeData,
+            content: `"${parsedBotResponse.origin}"에서 "${parsedBotResponse.destination}"까지의 경로입니다.`,
           };
         } else {
-          // 'route' 액션이 아니거나 필드가 부족한 경우: 일반 텍스트 응답으로 처리
+          // JSON 파싱은 성공했으나 'route' 액션이 아닌 경우 (일반 텍스트로 처리)
           botMessage = {
             id: uuidv4(),
-            text: botMessageContent,
             sender: 'bot',
             type: 'text',
+            content: botMessageContent, // content 필드 사용
           };
         }
       } catch (e) {
         // JSON 파싱 실패 시 (LLM이 일반 텍스트로 응답한 경우)
         botMessage = {
           id: uuidv4(),
-          text: botMessageContent,
           sender: 'bot',
           type: 'text',
+          content: botMessageContent, // content 필드 사용
         };
       }
 
