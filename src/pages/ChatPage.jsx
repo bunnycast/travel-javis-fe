@@ -145,7 +145,7 @@ const ChatPage = () => {
           }
 
           const messagesData = await messagesResponse.json();
-          const typedMessages = messagesData.map(msg => {
+          const typedMessages = (Array.isArray(messagesData.messages) ? messagesData.messages : []).map(msg => {
             if (msg.content && msg.content.includes('[이미지]')) {
               return { ...msg, type: 'image' };
             }
