@@ -1,0 +1,18 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    # Let’s Encrypt 프로덕션 API 서버
+    server: https://acme-v02.api.letsencrypt.org/directory
+    # 인증서 발급계정 이메일 (만료 알림 등 수신)
+    email: dldptmd611@gmail.com
+    # ACME 계정 키를 보관할 시크릿
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    # HTTP-01 챌린지 솔버 사용 (Ingress 경유)
+    solvers:
+    - http01:
+        ingress:
+          class: nginx
