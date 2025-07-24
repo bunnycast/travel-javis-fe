@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-backend
+  labels:
+    app: fastapi-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fastapi-backend
+  template:
+    metadata:
+      labels:
+        app: fastapi-backend
+    spec:
+      containers:
+      - name: fastapi-backend
+        image: rosco0611/fastapi-backend:latest
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - secretRef:
+            name: javis-backend-env
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fastapi-backend
+  labels:
+    app: fastapi-backend
+spec:
+  type: ClusterIP
+  selector:
+    app: fastapi-backend
+  ports:
+    - port: 8000
+      targetPort: 8000
