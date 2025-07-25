@@ -33,5 +33,5 @@ jobs:
       - name: Deploy Frontend
         run: |
           kubectl apply -f k8s/frontend.yaml
-          kubectl apply -f k8s/ingress-frontend.yaml
+          kubectl apply -f k8s/ingress.yaml
           kubectl rollout status deployment/javis-fe --timeout=180s
