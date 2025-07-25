@@ -33,9 +33,12 @@ jobs:
           echo "${{ secrets.KUBE_CONFIG_B64 }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
 
+      - name: Update Kubernetes deployment image tags
+        run: |
+          sed -i "s|image: rosco0611/javis-fe:.*|image: rosco0611/javis-fe:${IMAGE_TAG}|g" k8s/frontend.yaml
+
       - name: Deploy Frontend
         run: |
           kubectl apply -f k8s/frontend.yaml
           kubectl apply -f k8s/ingress-frontend.yaml
-          kubectl set image deployment/javis-fe javis-fe=rosco0611/javis-fe:${IMAGE_TAG}
           kubectl rollout status deployment/javis-fe --timeout=180s
