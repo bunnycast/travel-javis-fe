@@ -17,6 +17,7 @@ spec:
       containers:
       - name: javis-fe
         image: rosco0611/javis-fe:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
 ---
