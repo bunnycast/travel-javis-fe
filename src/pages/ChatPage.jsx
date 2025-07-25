@@ -129,7 +129,7 @@ const ChatPage = () => {
         try {
           const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
           console.log(API_BASE_URL)
-          
+
           // 1. 대화 메시지 가져오기
           const messagesResponse = await fetch(`${API_BASE_URL}/conversations/${conversationId}/full`, {
             method: 'GET',
@@ -146,10 +146,12 @@ const ChatPage = () => {
 
           const messagesData = await messagesResponse.json();
           const typedMessages = (Array.isArray(messagesData.messages) ? messagesData.messages : []).map(msg => {
-            if (msg.content && msg.content.includes('[이미지]')) {
-              return { ...msg, type: 'image' };
+            // 백엔드에서 이미 type 필드를 보내주므로 그대로 사용
+            // image_url이 있으면 type을 'image'로 강제하고, 없으면 백엔드 type 사용
+            if (msg.image_url) {
+              return { ...msg, type: 'image' }; // image 필드 대신 image_url 사용
             }
-            return { ...msg, type: 'text' };
+            return { ...msg, type: msg.type || 'text' }; // 백엔드에서 받은 type을 사용하거나 기본값 'text'
           });
           setMessages(typedMessages || []);
           console.log(`Messages for ${conversationId}:`, typedMessages);
@@ -224,10 +226,10 @@ const ChatPage = () => {
     // 1. 사용자 메시지를 화면에 즉시 표시
     const newMessage = {
       id: uuidv4(), // 고유 ID 생성
-      text: text,
+      content: text, // <-- text 대신 content 필드 사용
       sender: 'user',
       type: imageFile ? 'image' : 'text',
-      image: imageFile ? URL.createObjectURL(imageFile) : null, // 미리보기를 위한 URL 생성
+      image_url: imageFile ? URL.createObjectURL(imageFile) : null, // image 대신 image_url 필드 사용
     };
     setMessages(prevMessages => [...prevMessages, newMessage]);
     setInputValue('');
@@ -244,7 +246,7 @@ const ChatPage = () => {
       formData.append('image', imageFile);
       formData.append('question', text);
       formData.append('conversation_id', currentConvId); // 업데이트된 ID 사용
-      
+
       options = {
         method: 'POST',
         body: formData,
@@ -279,46 +281,25 @@ const ChatPage = () => {
       console.log('API 응답:', data);
 
       // 3. 봇의 응답 메시지를 화면에 표시
-      const botMessageContent = data.answer || data.content;
+      const botMessageContent = data.answer || data.content; // 백엔드 응답에서 answer 또는 content 필드 사용
       let botMessage = null;
 
-      try {
-        // LLM 응답이 JSON 형식인지 파싱 시도
-        const parsedBotResponse = JSON.parse(botMessageContent);
-
-        // 파싱된 JSON에 'action: "route"'와 필요한 필드가 있는지 확인
-        if (parsedBotResponse.action === 'route' && parsedBotResponse.origin && parsedBotResponse.destination) {
-          // 경로 안내 요청인 경우: /route API 호출 대신 샘플 데이터 사용
-          const routeData = {
-            "route_url": "https://map.naver.com/v5/directions/%EC%84%9C%EC%9A%B8%ED%8A%B8%EB%B3%84%EC%8B%9C+%EC%9A%A9%EC%82%B0%EA%B5%AC+%EB%82%A8%EC%82%B0%EA%B3%B5%EC%9B%90%EA%B8%B8+105/%EB%B6%80%EC%82%B0%EA%B4%91%EC%97%AD%EC%8B%9C+%EC%88%98%EC%98%81%EA%B5%AC+%EA%B4%91%EC%95%88%ED%95%B4%EB%B3%84%EB%A1%9C+219?pathType=0",
-            "distance": "410.8km",
-            "duration": "246998분",
-            "transport_mode": "car"
-          };
-
-          botMessage = {
-            id: uuidv4(),
-            sender: 'bot',
-            type: 'route', // 메시지 타입은 'route'
-            route_data: routeData, // 샘플 경로 데이터를 직접 저장
-            content: `"${parsedBotResponse.origin}"에서 "${parsedBotResponse.destination}"까지의 경로입니다.`, // 사용자에게 보여줄 텍스트 설명
-          };
-        } else {
-          // 'route' 액션이 아니거나 필드가 부족한 경우: 일반 텍스트 응답으로 처리
-          botMessage = {
-            id: uuidv4(),
-            text: botMessageContent,
-            sender: 'bot',
-            type: 'text',
-          };
-        }
-      } catch (e) {
-        // JSON 파싱 실패 시 (LLM이 일반 텍스트로 응답한 경우)
+      // 백엔드에서 route_data를 파싱해서 보내주므로, 여기서는 data.route_data를 직접 사용
+      if (data.route_data) { // data.route_data가 있는지 확인
         botMessage = {
           id: uuidv4(),
-          text: botMessageContent,
+          sender: 'bot',
+          type: 'route',
+          route_data: data.route_data,
+          content: botMessageContent,
+        };
+      } else {
+        // route_data가 없는 경우 (일반 텍스트 응답)
+        botMessage = {
+          id: uuidv4(),
           sender: 'bot',
           type: 'text',
+          content: botMessageContent,
         };
       }
 
@@ -359,7 +340,20 @@ const ChatPage = () => {
             onSend={(text, image) => handleSendMessage(text, image)} // onSend prop 변경
         />
         {/* Sidebar 컴포넌트 추가 */}
-        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} conversations={conversations} fetchConversations={fetchConversations} fetchCurrentConversationTitle={fetchCurrentConversationTitle} />
+        <Sidebar
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+            conversations={conversations}
+            fetchConversations={fetchConversations}
+            fetchCurrentConversationTitle={fetchCurrentConversationTitle}
+            onSummarizeConversation={(convId) => {
+                // 여기에 대화 요약 API 호출 로직을 추가합니다.
+                // convId는 Sidebar에서 전달받은 selectedConversationId가 됩니다.
+                console.log(`대화 요약 요청: ${convId}`);
+                alert(`대화 ${convId} 요약 기능은 아직 구현 중입니다.`);
+                // 실제 API 호출: fetch('/api/summarize', { method: 'POST', body: JSON.stringify({ conversation_id: convId }) });
+            }}
+        />
 
         {/* Sidebar 오버레이 (투명) */}
         {isSidebarOpen && (
