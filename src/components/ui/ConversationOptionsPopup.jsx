@@ -1,7 +1,7 @@
 import React from 'react';
 import editTitleIcon from '../../assets/icons/edit_title.svg'; // 아이콘 임포트
 import trashIcon from '../../assets/icons/trash.svg'; // 아이콘 임포트
-import summaryIcon from '../../assets/icons/document.svg'; // 대화 요약 아이콘 임포트 (★★ 새로 추가 ★★)
+import summaryIcon from '../../assets/icons/document.svg'; // 대화 요약 아이콘 임포트
 
 const ConversationOptionsPopup = ({ position, onClose, onEditTitle, onDeleteConversation, onSummarizeConversation }) => { // onSummarizeConversation prop 추가
   // 팝업 위치 스타일
@@ -28,7 +28,7 @@ const ConversationOptionsPopup = ({ position, onClose, onEditTitle, onDeleteConv
           <img src={editTitleIcon} alt="제목 수정" className="w-3 h-3 mr-1" /> {/* 아이콘 크기 및 간격 조정 */}
           제목 수정
         </button>
-        {/* 대화 요약 버튼 추가 (★★ 새로 추가 ★★) */}
+        {/* 대화 요약 버튼 추가 */}
         <button
           className="flex items-center w-full text-left px-2 py-1 text-gray-800 hover:bg-gray-100 rounded-md text-xs whitespace-nowrap"
           onClick={onSummarizeConversation}

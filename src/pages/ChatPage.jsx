@@ -149,7 +149,7 @@ const ChatPage = () => {
           console.log(`Messages for ${conversationId}:`, typedMessages);
 
           // 2. 대화 제목 가져오기
-          const titleResponse = await fetch(`${API_BASE_URL}/conversations/${conversationId}`, {
+          const titleResponse = await fetch(`https://javis.shop/api/conversations/${conversationId}`, {
             method: 'GET',
             headers: {
               'accept': 'application/json',
