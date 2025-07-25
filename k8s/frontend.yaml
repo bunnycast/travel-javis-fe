@@ -5,6 +5,7 @@ metadata:
   labels:
     app: javis-fe
 spec:
+  revisionHistoryLimit: 3
   replicas: 1
   selector:
     matchLabels:
@@ -16,7 +17,7 @@ spec:
     spec:
       containers:
         - name: javis-fe
-          image: rosco0611/javis-fe:latest
+          image: rosco0611/javis-fe:${IMAGE_TAG}
           imagePullPolicy: Always
           ports:
             - containerPort: 80
