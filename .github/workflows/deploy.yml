@@ -16,7 +16,6 @@ jobs:
       - name: Build & Push Docker image (Frontend)
         run: |
           docker build -t rosco0611/javis-fe:latest "$GITHUB_WORKSPACE"
-          docker tag javis-fe:latest rosco0611/javis-fe:latest
           docker push rosco0611/javis-fe:latest
 
       - name: Install kubectl
