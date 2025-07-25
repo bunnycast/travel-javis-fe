@@ -20,8 +20,7 @@ const ChatPage = () => {
   const fetchCurrentConversationTitle = async () => {
     if (conversationId) {
       try {
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-        const response = await fetch(`${API_BASE_URL}/conversations/${conversationId}`, {
+        const response = await fetch(`https://javis.shop/api/conversations/${conversationId}`, {
           method: 'GET',
           headers: {
             'accept': 'application/json',
@@ -46,15 +45,12 @@ const ChatPage = () => {
   // 대화 목록을 불러오는 함수
   const fetchConversations = async () => {
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-      console.log(import.meta.env.VITE_API_BASE_URL)
-      const response = await fetch(`${API_BASE_URL}/conversations/`, {
+      const response = await fetch(`https://javis.shop/api/conversations`, {
         method: 'GET',
         headers: {
           'accept': 'application/json',
         },
       });
-      console.log(API_BASE_URL);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -74,8 +70,7 @@ const ChatPage = () => {
     }
 
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-      const response = await fetch(`${API_BASE_URL}/conversations/`, { // 백엔드 엔드포인트
+      const response = await fetch(`https://javis.shop/api/conversations`, { // 백엔드 엔드포인트
         method: 'POST',
         headers: {
           'accept': 'application/json',
@@ -127,11 +122,8 @@ const ChatPage = () => {
       if (conversationId) {
         console.log(`Loading conversation: ${conversationId}`);
         try {
-          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-          console.log(API_BASE_URL)
-
           // 1. 대화 메시지 가져오기
-          const messagesResponse = await fetch(`${API_BASE_URL}/conversations/${conversationId}/full`, {
+          const messagesResponse = await fetch(`https://javis.shop/api/conversations/${conversationId}/full`, {
             method: 'GET',
             headers: {
               'accept': 'application/json',
@@ -199,8 +191,7 @@ const ChatPage = () => {
     let currentConvId = conversationId;
     if (!currentConvId) {
       try {
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-        const response = await fetch(`${API_BASE_URL}/conversations/`, {
+        const response = await fetch(`https://javis.shop/api/conversations`, {
           method: 'POST',
           headers: {
             'accept': 'application/json',
@@ -235,13 +226,12 @@ const ChatPage = () => {
     setInputValue('');
 
     // 2. API 호출
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     let endpoint = '';
     let options = {};
 
     if (imageFile) {
       // 이미지가 있는 경우: /analyze/ API 호출
-      endpoint = `${API_BASE_URL}/analyze/`;
+      endpoint = `https://javis.shop/api/analyze`;
       const formData = new FormData();
       formData.append('image', imageFile);
       formData.append('question', text);
