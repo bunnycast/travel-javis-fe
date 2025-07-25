@@ -340,7 +340,20 @@ const ChatPage = () => {
             onSend={(text, image) => handleSendMessage(text, image)} // onSend prop 변경
         />
         {/* Sidebar 컴포넌트 추가 */}
-        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} conversations={conversations} fetchConversations={fetchConversations} fetchCurrentConversationTitle={fetchCurrentConversationTitle} />
+        <Sidebar
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+            conversations={conversations}
+            fetchConversations={fetchConversations}
+            fetchCurrentConversationTitle={fetchCurrentConversationTitle}
+            onSummarizeConversation={(convId) => {
+                // 여기에 대화 요약 API 호출 로직을 추가합니다.
+                // convId는 Sidebar에서 전달받은 selectedConversationId가 됩니다.
+                console.log(`대화 요약 요청: ${convId}`);
+                alert(`대화 ${convId} 요약 기능은 아직 구현 중입니다.`);
+                // 실제 API 호출: fetch('/api/summarize', { method: 'POST', body: JSON.stringify({ conversation_id: convId }) });
+            }}
+        />
 
         {/* Sidebar 오버레이 (투명) */}
         {isSidebarOpen && (
