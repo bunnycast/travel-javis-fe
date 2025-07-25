@@ -15,11 +15,11 @@ spec:
         app: javis-fe
     spec:
       containers:
-      - name: javis-fe
-        image: rosco0611/javis-fe:latest
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 80
+        - name: javis-fe
+          image: rosco0611/javis-fe:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
