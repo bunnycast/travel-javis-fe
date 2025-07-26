@@ -245,7 +245,7 @@ const ChatPage = () => {
 
     } else {
       // 텍스트만 있는 경우: /chat/ API 호출
-      endpoint = `${API_BASE_URL}/chat/`;
+      endpoint = `https://javis.shop/api/chat/`;
       options = {
         method: 'POST',
         headers: {
