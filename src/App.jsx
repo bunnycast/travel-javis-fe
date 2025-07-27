@@ -40,6 +40,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+        {/* 정의되지 않은 모든 경로를 루트 페이지로 리디렉션 */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
   );
