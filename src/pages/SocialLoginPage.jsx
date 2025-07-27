@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom'; // useLocation 추가
 import naverLogo from '../assets/images/Naver_Logo.png';
-import welcomeImage from '../assets/images/welcome_Image.png';
+import welcomeImage from '../assets/images/welcome_image.png';
 
 const SocialLoginPage = ({ setIsLoggedIn }) => {
   const navigate = useNavigate();
