@@ -40,7 +40,7 @@ const ChatInput = ({ value, onChange, onSend }) => {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const [showCameraPreview, setShowCameraPreview] = useState(false);
-  const [currentFacingMode, setCurrentFacingMode] = useState('user'); // 'user' (전면) 또는 'environment' (후면)
+  const [currentFacingMode, setCurrentFacingMode] = useState('environment'); // 'user' (전면) 또는 'environment' (후면)
 
   const startCamera = async (facingMode) => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
