@@ -24,7 +24,7 @@ const SocialLoginPage = ({ setIsLoggedIn }) => {
     if (token) {
       localStorage.setItem('accessToken', token); // 토큰 저장
       setIsLoggedIn(true); // 로그인 상태 업데이트
-      navigate('/chat'); // 채팅 페이지로 리디렉션
+      navigate(''); // 루트 페이지로 리디렉션
     }
   }, [location, navigate, setIsLoggedIn]);
 
