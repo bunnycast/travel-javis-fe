@@ -193,7 +193,7 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
             try {
                 // TODO: 실제 대화 내용을 가져와 body에 포함하도록 수정 필요
                 const conversationTitle = conversations.find(conv => conv.id === selectedConversationId)?.title || "";
-                const response = await fetch('https://49.50.129.123:5001/export/pdf', {
+                const response = await fetch('https://javisttspdf.shop:444/export/pdf', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

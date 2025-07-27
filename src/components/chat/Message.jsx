@@ -35,7 +35,7 @@ const Message = ({ message }) => {
     let match;
 
     while ((match = linkRegex.exec(text)) !== null) {
-      const [fullMatch, linkText, url] = match;
+      const [linkText, url] = match;
       if (match.index > lastIndex) {
         parts.push(text.substring(lastIndex, match.index));
       }
@@ -58,7 +58,7 @@ const Message = ({ message }) => {
 
     setIsLoadingTts(true);
     try {
-      const ttsApiUrl = 'https://49.50.129.123:5000/tts'; // TTS API 엔드포인트
+      const ttsApiUrl = 'https://javisttspdf.shop/tts'; // TTS API 엔드포인트
       const response = await fetch(ttsApiUrl, {
         method: 'POST',
         headers: {
