@@ -58,7 +58,7 @@ const Message = ({ message }) => {
 
     setIsLoadingTts(true);
     try {
-      const ttsApiUrl = 'http://49.50.129.123:5000/tts'; // TTS API 엔드포인트
+      const ttsApiUrl = 'https://49.50.129.123:5000/tts'; // TTS API 엔드포인트
       const response = await fetch(ttsApiUrl, {
         method: 'POST',
         headers: {

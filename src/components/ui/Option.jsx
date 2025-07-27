@@ -8,13 +8,13 @@ import React from 'react';
  * @param {string} props.iconSrc - 옵션 아이콘 경로
  * @param {function} props.onClick - 클릭 이벤트 핸들러
  */
-const Option = ({ text, iconSrc, onClick }) => {
+const Option = ({ text, iconSrc, onClick, textColorClass = 'text-dark-gray' }) => {
   return (
     <div 
       className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-100 rounded-lg"
       onClick={onClick}
     >
-      <span className="text-dark-gray text-base font-medium">{text}</span>
+      <span className={`${textColorClass} text-sm font-medium`}>{text}</span>
       {iconSrc && <img src={iconSrc} alt={text} className="w-5 h-5 text-medium-gray" />}
     </div>
   );

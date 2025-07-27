@@ -187,6 +187,34 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
         handleClosePopup();
     };
 
+    // 대화 요약 기능
+    const handleSummarizeConversation = async () => {
+        if (selectedConversationId) {
+            try {
+                // TODO: 실제 대화 내용을 가져와 body에 포함하도록 수정 필요
+                const conversationTitle = conversations.find(conv => conv.id === selectedConversationId)?.title || "";
+                const response = await fetch('https://49.50.129.123:5001/export/pdf', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ conversation: conversationTitle }), // 일단 대화 제목을 보냄
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                alert(`대화 요약 요청 성공: ${data.message || '요약이 완료되었습니다.'}`);
+            } catch (err) {
+                console.error("대화 요약 실패:", err);
+                alert(`대화 요약에 실패했습니다: ${err.message}`);
+            }
+        }
+        handleClosePopup();
+    };
+
     return (
         <div
             className={`fixed top-0 left-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-20 flex flex-col ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
@@ -253,6 +281,7 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
                     onClose={handleClosePopup}
                     onEditTitle={handleEditTitle}
                     onDeleteConversation={handleDeleteConversation}
+                    onSummarizeConversation={handleSummarizeConversation} // 대화 요약 prop 추가
                 />
             )}
         </div>
