@@ -3,6 +3,13 @@
 @tailwind utilities;
 
 @font-face {
+  font-family: 'Jalnan_2';
+  src: url('./assets/fonts/Jalnan_2.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
   font-family: 'Pretendard_GOV';
   src: url('./assets/fonts/PretendardGOV-Thin.otf') format('opentype');
   font-weight: 100;
@@ -72,5 +79,5 @@ html, body {
 }
 
 body {
-  font-family: 'pretendard', sans-serif; /* Tailwind config에 설정한 이름 */
+  font-family: 'Jalnan_2', 'pretendard', sans-serif; /* Tailwind config에 설정한 이름 */
 }

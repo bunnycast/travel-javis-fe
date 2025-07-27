@@ -12,6 +12,7 @@ export default {
       },
       fontFamily: {
         'pretendard': ['Pretendard_GOV', 'sans-serif'],
+        'Jalnan_2': ['Jalnan_2', 'sans-serif'],
       },
     },
   },
