@@ -7,6 +7,7 @@ import useImageAttachment from '../../hooks/useImageAttachment';
 import attachmentIcon from '../../assets/icons/plus.svg';
 import micIcon from '../../assets/icons/microphone.svg';
 import sendIcon from '../../assets/icons/send.svg';
+import switchCameraIcon from '../../assets/icons/switch_camera.svg'; // 카메라 전환 아이콘 임포트
 
 /**
  * 하단 채팅 입력창 컴포넌트
@@ -39,13 +40,23 @@ const ChatInput = ({ value, onChange, onSend }) => {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const [showCameraPreview, setShowCameraPreview] = useState(false);
+  const [currentFacingMode, setCurrentFacingMode] = useState('user'); // 'user' (전면) 또는 'environment' (후면)
 
-  const handleSelectCamera = async () => {
-    setShowAttachmentOptions(false);
-    setShowCameraPreview(true);
+  const startCamera = async (facingMode) => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert('카메라를 사용할 수 없는 환경입니다. 브라우저가 이 기능을 지원하는지 확인해주세요.');
+      return;
+    }
+
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+    }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facingMode },
+        audio: false,
+      });
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -62,6 +73,18 @@ const ChatInput = ({ value, onChange, onSend }) => {
         alert(`카메라 접근 중 오류 발생: ${err.message}`);
       }
     }
+  };
+
+  const handleSelectCamera = () => {
+    setShowAttachmentOptions(false);
+    setShowCameraPreview(true);
+    startCamera(currentFacingMode);
+  };
+
+  const handleToggleCameraFacing = () => {
+    const newFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+    setCurrentFacingMode(newFacingMode);
+    startCamera(newFacingMode);
   };
 
   const handleCapturePhoto = () => {
@@ -179,6 +202,12 @@ const ChatInput = ({ value, onChange, onSend }) => {
             >
               촬영
             </button>
+            <IconButton
+              onClick={handleToggleCameraFacing}
+              className="bg-gray-500 text-white px-3 py-3 rounded-full shadow-lg hover:bg-gray-600 transition-colors"
+            >
+              <img src={switchCameraIcon} alt="카메라 전환" className="h-6 w-6" />
+            </IconButton>
             <button
               onClick={handleCancelCamera}
               className="bg-gray-500 text-white px-6 py-3 rounded-full text-lg font-semibold shadow-lg hover:bg-gray-600 transition-colors"
