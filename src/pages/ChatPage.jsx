@@ -7,6 +7,10 @@ import ChatInput from '../components/chat/ChatInput';
 import Sidebar from '../components/layout/Sidebar'; // Sidebar 임포트
 
 const ChatPage = () => {
+  const API_BASE = (import.meta.env?.VITE_API_BASE_URL && import.meta.env.VITE_API_BASE_URL.trim())
+      ? import.meta.env.VITE_API_BASE_URL.trim().replace(/\/$/, '')
+      : '/api';
+  const url = (path) => `${API_BASE}${path}`;
   const [messages, setMessages] = useState([]); // 초기 메시지 빈 배열로 설정
   const [inputValue, setInputValue] = useState('');
   const [keyboardHeight, setKeyboardHeight] = useState(0);
@@ -20,7 +24,7 @@ const ChatPage = () => {
   const fetchCurrentConversationTitle = async () => {
     if (conversationId) {
       try {
-        const response = await fetch(`https://javis.shop/api/conversations/${conversationId}`, {
+        const response = await fetch(url(`/conversations/${conversationId}`), {
           method: 'GET',
           headers: {
             'accept': 'application/json',
@@ -45,7 +49,7 @@ const ChatPage = () => {
   // 대화 목록을 불러오는 함수
   const fetchConversations = async () => {
     try {
-      const response = await fetch(`https://javis.shop/api/conversations`, {
+      const response = await fetch(url(`/conversations`), {
         method: 'GET',
         headers: {
           'accept': 'application/json',
@@ -70,7 +74,7 @@ const ChatPage = () => {
     }
 
     try {
-      const response = await fetch(`https://javis.shop/api/conversations`, { // 백엔드 엔드포인트
+      const response = await fetch(url(`/conversations`), { // 백엔드 엔드포인트
         method: 'POST',
         headers: {
           'accept': 'application/json',
@@ -123,7 +127,7 @@ const ChatPage = () => {
         console.log(`Loading conversation: ${conversationId}`);
         try {
           // 1. 대화 메시지 가져오기
-          const messagesResponse = await fetch(`https://javis.shop/api/conversations/${conversationId}/full`, {
+          const messagesResponse = await fetch(url(`/conversations/${conversationId}/full`), {
             method: 'GET',
             headers: {
               'accept': 'application/json',
@@ -149,7 +153,7 @@ const ChatPage = () => {
           console.log(`Messages for ${conversationId}:`, typedMessages);
 
           // 2. 대화 제목 가져오기
-          const titleResponse = await fetch(`https://javis.shop/api/conversations/${conversationId}`, {
+          const titleResponse = await fetch(url(`/conversations/${conversationId}`), {
             method: 'GET',
             headers: {
               'accept': 'application/json',
@@ -191,7 +195,7 @@ const ChatPage = () => {
     let currentConvId = conversationId;
     if (!currentConvId) {
       try {
-        const response = await fetch(`https://javis.shop/api/conversations`, {
+        const response = await fetch(url(`/conversations`), {
           method: 'POST',
           headers: {
             'accept': 'application/json',
@@ -231,7 +235,7 @@ const ChatPage = () => {
 
     if (imageFile) {
       // 이미지가 있는 경우: /analyze/ API 호출
-      endpoint = `https://javis.shop/api/analyze`;
+      endpoint = url(`/analyze`);
       const formData = new FormData();
       formData.append('image', imageFile);
       formData.append('question', text);
@@ -245,7 +249,7 @@ const ChatPage = () => {
 
     } else {
       // 텍스트만 있는 경우: /chat/ API 호출
-      endpoint = `https://javis.shop/api/chat/`;
+      endpoint = url(`/chat/`);
       options = {
         method: 'POST',
         headers: {
