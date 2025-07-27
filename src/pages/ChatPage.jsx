@@ -49,7 +49,7 @@ const ChatPage = () => {
   // 대화 목록을 불러오는 함수
   const fetchConversations = async () => {
     try {
-      const response = await fetch(url(`/conversations`), {
+      const response = await fetch(url(`/conversations/`), {
         method: 'GET',
         headers: {
           'accept': 'application/json',
@@ -74,7 +74,7 @@ const ChatPage = () => {
     }
 
     try {
-      const response = await fetch(url(`/conversations`), { // 백엔드 엔드포인트
+      const response = await fetch(url(`/conversations/`), { // 백엔드 엔드포인트
         method: 'POST',
         headers: {
           'accept': 'application/json',
@@ -195,7 +195,7 @@ const ChatPage = () => {
     let currentConvId = conversationId;
     if (!currentConvId) {
       try {
-        const response = await fetch(url(`/conversations`), {
+        const response = await fetch(url(`/conversations/`), {
           method: 'POST',
           headers: {
             'accept': 'application/json',
@@ -235,7 +235,7 @@ const ChatPage = () => {
 
     if (imageFile) {
       // 이미지가 있는 경우: /analyze/ API 호출
-      endpoint = url(`/analyze`);
+      endpoint = url(`/analyze/`);
       const formData = new FormData();
       formData.append('image', imageFile);
       formData.append('question', text);
