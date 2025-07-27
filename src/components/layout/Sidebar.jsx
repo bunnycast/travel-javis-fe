@@ -78,7 +78,9 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
     // 길게 누르기 시작
     const handleLongPressStart = (e, convId) => {
         // 마우스 오른쪽 버튼 클릭 방지 (컨텍스트 메뉴 기본 동작)
-        e.preventDefault();
+        if (e.type === 'mousedown') {
+            e.preventDefault();
+        }
         // 터치 이벤트의 경우, 기본 스크롤 동작 방지
         if (e.type === 'touchstart') {
             e.stopPropagation();
