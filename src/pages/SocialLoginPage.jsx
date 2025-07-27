@@ -24,7 +24,7 @@ const SocialLoginPage = ({ setIsLoggedIn }) => {
     if (token) {
       localStorage.setItem('accessToken', token); // 토큰 저장
       setIsLoggedIn(true); // 로그인 상태 업데이트
-      navigate(''); // 루트 페이지로 리디렉션
+      navigate('/chat'); // 루트 페이지로 리디렉션
     }
   }, [location, navigate, setIsLoggedIn]);
 
@@ -32,7 +32,7 @@ const SocialLoginPage = ({ setIsLoggedIn }) => {
       <div className="fixed inset-0 bg-blue-600"> {/* 배경색만 전체 화면에 칠하도록 fixed inset-0 */}
         <div className="flex flex-col items-center justify-between w-full h-screen p-4"> {/* 기존 콘텐츠 컨테이너 */}
           {/* 텍스트 박스 - 상단에 배치하고 mt-16으로 여백 */}
-          <div className="w-full max-w-sm text-center text-white text-3xl sm:text-4xl md:text-[40px] font-normal font-['Jalnan_2'] leading-tight
+          <div className="w-full max-w-sm text-center text-white text-3xl sm:text-4xl md:text-[40px] font-normal leading-tight
   sm:leading-normal md:leading-[40px] tracking-[0.01em] mt-16">
             여행자의 좋은 친구<br/>여행자비스 입니다!
           </div>
