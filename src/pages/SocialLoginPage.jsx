@@ -11,7 +11,7 @@ const SocialLoginPage = ({ setIsLoggedIn }) => {
 
   // 네이버 로그인 시작 (백엔드 리디렉션)
   const handleNaverLogin = () => {
-    window.location.href = `${API_BASE}/auth/naver/login`;
+    window.location.href = `${API_BASE}/auth/login`;
   };
 
   // 콜백 URL 처리
@@ -24,8 +24,8 @@ const SocialLoginPage = ({ setIsLoggedIn }) => {
       // 백엔드 콜백 API 호출
       const handleNaverCallback = async () => {
         try {
-          const response = await fetch(`${API_BASE}/auth/naver/callback`, {
-            method: 'POST',
+          const response = await fetch(`${API_BASE}/auth/callback`, {
+            method: '',
             headers: {
               'Content-Type': 'application/json',
             },
