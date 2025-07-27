@@ -13,9 +13,9 @@ jobs:
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      - name: Build & Push Docker image (Frontend)
+      - name: Build & Push Docker image (Backend)
         run: |
-          docker build -t rosco0611/javis-fe:latest "$GITHUB_WORKSPACE"
+          docker build --no-cache -t rosco0611/javis-fe:latest "$GITHUB_WORKSPACE"
           docker push rosco0611/javis-fe:latest
 
       - name: Install kubectl
@@ -30,8 +30,11 @@ jobs:
           echo "${{ secrets.KUBE_CONFIG_B64 }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
 
-      - name: Deploy Frontend
+      - name: Deploy Backend
         run: |
+          kubectl delete -f k8s/frontend.yaml --ignore-not-found=true
+          kubectl delete -f k8s/ingress-frontend.yaml --ignore-not-found=true
+
           kubectl apply -f k8s/frontend.yaml
           kubectl apply -f k8s/ingress-frontend.yaml
           kubectl rollout status deployment/javis-fe --timeout=180s
