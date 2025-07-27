@@ -27,7 +27,7 @@ const SocialLoginPage = ({ setIsLoggedIn }) => {
       const handleNaverCallback = async () => {
         try {
           const response = await fetch(`${API_BASE}/auth/callback`, {
-            method: 'POST',
+            method: 'GET',
             headers: {
               'Content-Type': 'application/json',
             },
