@@ -99,27 +99,29 @@ const Message = ({ message }) => {
     switch (type) {
       case 'image':
         return (
-            <>
-              {/* 이미지가 있는 경우 (말풍선 없이) */}
+            <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
+              {/* 이미지가 있는 경우 */}
               {image_url && (
                   <img
                       src={image_url}
                       alt="첨부 이미지"
-                      className="rounded-md cursor-pointer my-2"
+                      className="rounded-lg cursor-pointer my-2 shadow-md"
                       onClick={() => setIsModalOpen(true)}
-                      style={{ maxWidth: '120px', height: 'auto', objectFit: 'cover' }}
+                      style={{ maxWidth: '150px', height: 'auto', objectFit: 'cover' }}
                   />
               )}
-              {/* 텍스트가 있는 경우 (말풍선 포함) */}
+              {/* 텍스트가 있는 경우 (별도의 말풍선) */}
               {content && (
-                  <div className="p-3"> {/* 내용에 패딩 적용 */}
-                    <p>{renderContentWithLinks(content)}</p> {/* 링크 렌더링 함수 적용 */}
+                  <div className={`${bubbleClasses} mt-1`}>
+                    <div className="p-3">
+                      <p>{renderContentWithLinks(content)}</p>
+                    </div>
                   </div>
               )}
               {isModalOpen && image_url && (
                   <ImageModal imageUrl={image_url} onClose={() => setIsModalOpen(false)} />
               )}
-            </>
+            </div>
         );
       case 'text': // 이제 'route' 타입은 'text'로 처리됩니다。
       default:
