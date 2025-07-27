@@ -13,6 +13,9 @@ RUN npm run build
 # 2) 프로덕션 스테이지: nginx로 서빙
 FROM nginx:stable-alpine
 
+# 커스텀 nginx.conf 파일을 컨테이너 내부의 기본 설정 파일로 복사
+COPY nginx.conf /etc/nginx/nginx.conf
+
 # 빌드 결과물을 nginx html 폴더에 복사
 COPY --from=builder /app/dist /usr/share/nginx/html
 
