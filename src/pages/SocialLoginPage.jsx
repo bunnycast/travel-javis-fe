@@ -19,43 +19,14 @@ const SocialLoginPage = ({ setIsLoggedIn }) => {
   // 콜백 URL 처리
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const code = params.get('code');
-    const state = params.get('state');
+    const token = params.get('token'); // 'token' 파라미터 추출
 
-    if (code && state) {
-      // 백엔드 콜백 API 호출
-      const handleNaverCallback = async () => {
-        try {
-          const response = await fetch(`${API_BASE}/auth/callback`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({code, state}),
-          });
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-
-          const data = await response.json();
-          // 백엔드에서 토큰을 'access_token' 필드로 반환한다고 가정
-          if (data.access_token) {
-            localStorage.setItem('accessToken', data.access_token); // 토큰 저장
-            setIsLoggedIn(true); // 로그인 상태 업데이트
-            navigate('/chat'); // 채팅 페이지로 리디렉션
-          } else {
-            alert('로그인 실패: 토큰을 받지 못했습니다.');
-          }
-        } catch (error) {
-          console.error('네이버 콜백 처리 중 오류 발생:', error);
-          alert(`로그인 처리 중 오류 발생: ${error.message}`);
-          // 오류 발생 시 로그인 페이지에 머무르거나 적절한 처리
-        }
-      };
-      handleNaverCallback();
+    if (token) {
+      localStorage.setItem('accessToken', token); // 토큰 저장
+      setIsLoggedIn(true); // 로그인 상태 업데이트
+      navigate('/chat'); // 채팅 페이지로 리디렉션
     }
-  }, [location, navigate, setIsLoggedIn, API_BASE]);
+  }, [location, navigate, setIsLoggedIn]);
 
   return (
       <div className="fixed inset-0 bg-blue-600"> {/* 배경색만 전체 화면에 칠하도록 fixed inset-0 */}
