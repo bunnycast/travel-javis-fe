@@ -26,6 +26,15 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
     const navigate = useNavigate();
 
+    // 선언 누락 보완: 길게누르기 타이머
+    const longPressTimer = useRef(null);
+
+    // API 베이스 URL: .env.production 의 VITE_API_BASE_URL 사용, 없으면 '/api'
+    const API_BASE = (import.meta.env?.VITE_API_BASE_URL && import.meta.env.VITE_API_BASE_URL.trim())
+        ? import.meta.env.VITE_API_BASE_URL.trim().replace(/\/$/, '')
+        : '/api';
+    const url = (path) => `${API_BASE}${path}`;
+
     // 팝업 관련 상태
     const [showPopup, setShowPopup] = useState(false);
     const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
@@ -124,7 +133,7 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
             const newTitle = prompt("새로운 대화 제목을 입력하세요:", "새 제목");
             if (newTitle !== null && newTitle.trim() !== '') {
                 try {
-                    const response = await fetch(`https://javis.shop/api/conversations/${selectedConversationId}`, {
+                    const response = await fetch(url(`/conversations/${selectedConversationId}`), {
                         method: 'PUT',
                         headers: {
                             'accept': 'application/json',
@@ -153,11 +162,9 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
     const handleDeleteConversation = async () => {
         if (selectedConversationId && window.confirm("정말로 이 대화를 삭제하시겠습니까?")) {
             try {
-                const response = await fetch(`https://javis.shop/api/conversations/${selectedConversationId}`, {
+                const response = await fetch(url(`/conversations/${selectedConversationId}`), {
                     method: 'DELETE',
-                    headers: {
-                        'accept': 'application/json',
-                    },
+                    headers: { 'accept': 'application/json' },
                 });
 
                 if (!response.ok) {
@@ -181,6 +188,10 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
     return (
         <div
             className={`fixed top-0 left-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-20 flex flex-col ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+            onMouseUp={handleLongPressEnd}
+            onMouseLeave={handleLongPressCancel}
+            onTouchEnd={handleLongPressEnd}
+            onTouchCancel={handleLongPressCancel}
         >
             {/* Sidebar Header (Search Input) */}
             <div className="p-4 border-b">
@@ -206,6 +217,8 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
                         key={conv.id}
                         className="p-3 mb-2 rounded-lg hover:bg-gray-50 cursor-pointer"
                         onClick={() => handleConversationClick(conv.id)}
+                        onMouseDown={(e) => handleLongPressStart(e, conv.id)}
+                        onTouchStart={(e) => handleLongPressStart(e, conv.id)}
                     >
                         <div className="flex justify-between items-center"> {/* 제목과 버튼을 위한 flex 컨테이너 */}
                             <h4 className="font-semibold text-dark-gray">{conv.title}</h4>
