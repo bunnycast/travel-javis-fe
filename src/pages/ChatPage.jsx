@@ -193,6 +193,17 @@ const ChatPage = () => {
   const handleSendMessage = async (text, imageFile = null) => {
     if (text.trim() === '' && !imageFile) return;
 
+    // 1. 사용자 메시지를 화면에 즉시 표시
+    const newMessage = {
+      id: uuidv4(),
+      content: text,
+      sender: 'user',
+      type: imageFile ? 'image' : 'text',
+      image_url: imageFile ? URL.createObjectURL(imageFile) : null,
+    };
+    setMessages(prevMessages => [...prevMessages, newMessage]);
+    setInputValue('');
+
     let currentConvId = conversationId;
     if (!currentConvId) {
       try {
@@ -216,20 +227,14 @@ const ChatPage = () => {
       } catch (err) {
         console.error("새 대화 생성 실패:", err);
         alert(`새 대화 생성 실패: ${err.message}`);
+        // 새 대화 생성 실패 시, 추가했던 사용자 메시지를 제거하거나 실패 상태로 표시할 수 있습니다.
+        // 여기서는 간단히 제거합니다.
+        setMessages(prevMessages => prevMessages.filter(msg => msg.id !== newMessage.id));
         return;
       }
     }
 
-    const newMessage = {
-      id: uuidv4(),
-      content: text,
-      sender: 'user',
-      type: imageFile ? 'image' : 'text',
-      image_url: imageFile ? URL.createObjectURL(imageFile) : null,
-    };
-    setMessages(prevMessages => [...prevMessages, newMessage]);
-    setInputValue('');
-
+    // 2. API 호출
     let endpoint = '';
     let options = {};
 
@@ -303,6 +308,8 @@ const ChatPage = () => {
     } catch (err) {
       console.error("API 호출 실패:", err);
       alert(`메시지 전송에 실패했습니다: ${err.message}`);
+      // API 호출 실패 시, 추가했던 사용자 메시지를 제거하거나 실패 상태로 표시할 수 있습니다.
+      setMessages(prevMessages => prevMessages.filter(msg => msg.id !== newMessage.id));
     }
   };
 
