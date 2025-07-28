@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import closeIcon from '../assets/icons/close.svg'; // X 아이콘 임포트
 
-const Mypage = () => {
-  const { userId } = useParams(); // URL에서 userId 파라미터 가져오기
+const Mypage = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState(null); // 현재 로그인된 사용자 정보
-  const [displayUser, setDisplayUser] = useState(null); // 화면에 표시할 사용자 정보
+  const [userProfile, setUserProfile] = useState(null); // 사용자 정보
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -26,103 +25,108 @@ const Mypage = () => {
   };
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    if (!isOpen) { // 모달이 닫혀있으면 데이터 로드 안함
+      return;
+    }
+
+    const fetchUserProfile = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        // 1. 현재 로그인된 사용자 정보 가져오기
-        const currentUserRes = await fetch(url('/auth/accounts/me'), {
+        const response = await fetch(url('/auth/accounts/me'), {
           headers: getAuthHeaders(),
         });
 
-        if (!currentUserRes.ok) {
-          throw new Error('Failed to fetch current user info');
+        if (!response.ok) {
+          throw new Error('Failed to fetch user profile');
         }
-        const currentUserData = await currentUserRes.json();
-        setCurrentUser(currentUserData);
-
-        let targetUserId = userId;
-
-        // 2. 접근 권한 확인 및 리다이렉션
-        if (targetUserId && currentUserData.id !== targetUserId && !currentUserData.is_admin) {
-          // is_admin이 0인 계정이 다른 계정의 마이페이지에 접근 시 본인 페이지로 리다이렉트
-          navigate('/mypage', { replace: true });
-          targetUserId = currentUserData.id; // 본인 정보 로드
-        } else if (!targetUserId) {
-          // userId 파라미터가 없으면 본인 페이지로 간주
-          targetUserId = currentUserData.id;
-        }
-
-        // 3. 화면에 표시할 사용자 정보 가져오기
-        const displayUserRes = await fetch(url(`/auth/accounts/${targetUserId}`), {
-          headers: getAuthHeaders(),
-        });
-
-        if (!displayUserRes.ok) {
-          throw new Error('Failed to fetch display user info');
-        }
-        const displayUserData = await displayUserRes.json();
-        setDisplayUser(displayUserData);
-
+        const data = await response.json();
+        setUserProfile(data);
       } catch (err) {
-        console.error('Error fetching user data:', err);
+        console.error('Error fetching user profile:', err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUsers();
-  }, [userId, navigate]); // userId가 변경될 때마다 다시 실행
+    fetchUserProfile();
+  }, [isOpen]); // isOpen 상태가 변경될 때마다 실행
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-        <p>사용자 정보를 불러오는 중...</p>
-      </div>
-    );
-  }
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken'); // 토큰 삭제
+    navigate('/', { replace: true }); // 로그인 페이지로 리디렉션
+    onClose(); // 마이페이지 모달 닫기
+  };
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-        <p className="text-red-500">오류 발생: {error}</p>
-        <button onClick={() => navigate('/')} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded">
-          홈으로 돌아가기
-        </button>
-      </div>
-    );
-  }
+  // 가입일 포맷팅 함수
+  const formatJoinDate = (dateString) => {
+    if (!dateString) return '정보 없음';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
 
-  if (!displayUser) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-        <p>사용자 정보를 찾을 수 없습니다.</p>
-        <button onClick={() => navigate('/')} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded">
-          홈으로 돌아가기
-        </button>
-      </div>
-    );
-  }
+  if (!isOpen) return null; // 모달이 닫혀있으면 아무것도 렌더링하지 않음
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100 p-4">
-      <h1 className="text-3xl font-bold mb-4">마이페이지</h1>
-      <img
-        src={displayUser.profileImage || 'https://via.placeholder.com/150'} // 기본 이미지 추가
-        alt="프로필 이미지"
-        className="w-32 h-32 rounded-full mb-4 object-cover"
-      />
-      <p className="text-xl font-semibold mb-2">닉네임: {displayUser.nickname || '정보 없음'}</p>
-      <p className="text-gray-700 mb-2">이메일: {displayUser.email || '정보 없음'}</p>
-      <p className="text-gray-700 mb-2">전화번호: {displayUser.phone || '정보 없음'}</p>
-      <p className="text-gray-700 mb-2">관리자 여부: {displayUser.is_admin ? '예' : '아니오'}</p>
-      {currentUser && currentUser.id === displayUser.id && (
-        <button className="mt-4 px-4 py-2 bg-green-500 text-white rounded">
-          내 정보 수정 (구현 예정)
-        </button>
-      )}
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-end justify-center">
+      <div
+        className={`bg-white w-full max-w-md h-3/4 rounded-t-3xl shadow-lg p-6 flex flex-col transform transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-y-0' : 'translate-y-full'
+        }`}
+      >
+        {/* Close Button */}
+        <div className="flex justify-end mb-4">
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-200">
+            <img src={closeIcon} alt="닫기" className="h-6 w-6" />
+          </button>
+        </div>
+
+        {loading && (
+          <div className="flex-1 flex items-center justify-center">
+            <p>사용자 정보를 불러오는 중...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="flex-1 flex items-center justify-center flex-col">
+            <p className="text-red-500 mb-2">오류 발생: {error}</p>
+            <button onClick={onClose} className="px-4 py-2 bg-blue-500 text-white rounded">
+              닫기
+            </button>
+          </div>
+        )}
+
+        {userProfile && !loading && !error && (
+          <div className="flex-1 flex flex-col items-center justify-center">
+            {/* Profile Image */}
+            <img
+              src={userProfile.profileImage || 'https://via.placeholder.com/150'}
+              alt="프로필 이미지"
+              className="w-24 h-24 rounded-full mb-4 object-cover"
+            />
+            {/* Nickname */}
+            <span className="text-xl font-semibold mb-2">{userProfile.nickname || '정보 없음'}</span>
+            {/* Email */}
+            <p className="text-gray-700 mb-1">이메일: {userProfile.email || '정보 없음'}</p>
+            {/* Join Date */}
+            <p className="text-gray-700 mb-4">가입일: {formatJoinDate(userProfile.created_at)}</p>
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="mt-6 px-6 py-3 bg-red-500 text-white rounded-lg shadow-md hover:bg-red-600 transition-colors"
+            >
+              로그아웃
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

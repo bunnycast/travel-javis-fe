@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import SocialLoginPage from './pages/SocialLoginPage';
 import ChatPage from './pages/ChatPage';
-import Mypage from './pages/Mypage';
+
 
 function App() {
   // localStorage의 accessToken 존재 여부로 초기 로그인 상태 결정
@@ -75,14 +75,7 @@ function App() {
                 </ProtectedRoute>
               }
           />
-          <Route
-              path="/mypage/:userId?"
-              element={
-                <ProtectedRoute>
-                  <Mypage />
-                </ProtectedRoute>
-              }
-          />
+          
           {/* 정의되지 않은 모든 경로를 루트 페이지로 리디렉션 */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -21,7 +21,7 @@ const formatDate = (dateString) => {
     return `${year}/${month}/${day} (${dayOfWeek})`;
 };
 
-const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurrentConversationTitle }) => {
+const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurrentConversationTitle, onOpenMypage }) => { // onOpenMypage prop 추가
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
     const navigate = useNavigate();
@@ -61,7 +61,7 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
             }
 
             try {
-                const response = await fetch(url('/users/me'), {
+                const response = await fetch(url('/auth/accounts/me'), {
                     method: 'GET',
                     headers: getAuthHeaders(),
                 });
@@ -320,7 +320,7 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
                     <img src={userProfile.profileImage} alt="프로필" className="w-10 h-10 rounded-full mr-2" />
                     <span className="font-semibold text-dark-gray">{userProfile.name}</span>
                 </div>
-                <IconButton onClick={() => navigate('/mypage')}>
+                <IconButton onClick={() => { onClose(); onOpenMypage(); }}> {/* 마이페이지 버튼 클릭 시 onOpenMypage 호출 */} 
                     <img src={dotMenuIcon} alt="마이페이지" className="h-5 w-5 text-medium-gray" />
                 </IconButton>
             </div>
