@@ -23,7 +23,7 @@ const ChatPage = () => {
 
   // JWT 토큰을 가져오는 헬퍼 함수
   const getAuthHeaders = () => {
-    const token = localStorage.getItem('jwt_token');
+    const token = localStorage.getItem('accessToken');
     const headers = {
       'accept': 'application/json',
     };
@@ -39,7 +39,7 @@ const ChatPage = () => {
     const token = params.get('token');
 
     if (token) {
-      localStorage.setItem('jwt_token', token);
+      localStorage.setItem('accessToken', token);
       // URL에서 토큰 제거 (히스토리 스택에 새 엔트리 추가하지 않음)
       navigate(location.pathname, { replace: true });
     }
