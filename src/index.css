@@ -88,5 +88,5 @@ html, body {
 }
 
 body {
-  font-family: 'pretendard', 'Jalnan_2', sans-serif; /* Tailwind config에 설정한 이름 */
+  font-family: sans-serif; /* Tailwind의 기본 sans 폰트 사용 */
 }

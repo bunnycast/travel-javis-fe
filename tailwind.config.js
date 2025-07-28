@@ -11,7 +11,7 @@ export default {
         'light-gray-bg': '#F8F9FE',
       },
       fontFamily: {
-        'pretendard': ['Pretendard_GOV', 'sans-serif'],
+        sans: ['Pretendard_GOV', 'sans-serif'], // Pretendard_GOV를 기본 sans 폰트로 설정
         'Jalnan_2': ['Jalnan_2', 'sans-serif'],
       },
     },

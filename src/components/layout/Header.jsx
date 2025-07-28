@@ -10,7 +10,7 @@ const Header = ({ title = '🛫 여행자비스', onMenuClick, onNewChatClick })
       <IconButton onClick={onMenuClick}>
         <img src={menuIcon} alt="메뉴" className="h-6 w-6" />
       </IconButton>
-      <h3 className="flex-1 text-center text-base font-extrabold text-dark-gray font-['Pretendard_GOV'] tracking-tight">{title}</h3>
+      <h3 className="flex-1 text-center text-base font-extrabold text-dark-gray font-sans tracking-tight">{title}</h3> {/* font-['Pretendard_GOV'] 대신 font-sans 사용 */}
       <IconButton onClick={onNewChatClick}>
         <img src={newChatIcon} alt="새 채팅" className="h-6 w-6" />
       </IconButton>
