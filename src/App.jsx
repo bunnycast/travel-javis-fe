@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import SocialLoginPage from './pages/SocialLoginPage';
 import ChatPage from './pages/ChatPage';
 
@@ -51,7 +51,10 @@ function App() {
       >
         <Routes>
           {/* 루트 경로를 SocialLoginPage로 설정 */}
-          <Route path="/" element={<SocialLoginPage setIsLoggedIn={setIsLoggedIn} />} />
+          <Route
+            path="/"
+            element={isLoggedIn ? <Navigate to="/chat" replace /> : <SocialLoginPage setIsLoggedIn={setIsLoggedIn} />}
+          />
 
           {/* 로그인된 사용자만 접근 가능한 페이지 */}
           <Route
