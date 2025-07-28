@@ -112,8 +112,6 @@ const Mypage = ({ isOpen, onClose }) => {
             />
             {/* Nickname */}
             <span className="text-xl font-semibold mb-2">닉네임: {userProfile.nickname || '정보 없음'}</span>
-            {/* Name (추가된 부분) */}
-            <p className="text-gray-700 mb-1">이름: {userProfile.name || '이름 없음'}</p>
             {/* Email */}
             <p className="text-gray-700 mb-1">이메일: {userProfile.email || '정보 없음'}</p>
             {/* Join Date */}
