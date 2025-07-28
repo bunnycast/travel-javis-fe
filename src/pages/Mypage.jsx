@@ -56,8 +56,9 @@ const Mypage = ({ isOpen, onClose }) => {
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken'); // 토큰 삭제
-    navigate('/', { replace: true }); // 로그인 페이지로 리디렉션
+    // navigate('/', { replace: true }); // 이 줄은 제거합니다.
     onClose(); // 마이페이지 모달 닫기
+    window.location.reload(); // 페이지 새로고침
   };
 
   // 가입일 포맷팅 함수
