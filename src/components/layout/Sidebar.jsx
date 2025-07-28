@@ -306,7 +306,7 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
                                 onClick={(e) => handleOpenOptionsPopup(e, conv.id)}
                                 className="ml-2" // 제목과의 간격
                             >
-                                <img src={dotMenuIcon} alt="옵션" className="h-4 w-4 text-gray-400" /> {/* 아이콘 크기 및 색상 조정 */}
+                                <img src={dotMenuIcon} alt="옵션" className="h-4 w-4 text-gray-400" /> {/* 아이콘 크기 및 색상 조정 */} 
                             </IconButton>
                         </div>
                         <p className="text-sm text-medium-gray truncate">{formatDate(conv.created_at)}</p>
