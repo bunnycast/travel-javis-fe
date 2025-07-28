@@ -13,7 +13,7 @@ import ConversationOptionsPopup from '../ui/ConversationOptionsPopup';
 // 날짜 포맷팅 헬퍼 함수
 const formatDate = (dateString) => {
     const date = new Date(dateString);
-    const year = date.getFullYear();
+    const year = String(date.getFullYear());
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const days = ['일', '월', '화', '수', '목', '금', '토'];
@@ -34,6 +34,56 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
         ? import.meta.env.VITE_API_BASE_URL.trim().replace(/\/$/, '')
         : '/api';
     const url = (path) => `${API_BASE}${path}`;
+
+    // JWT 토큰을 가져오는 헬퍼 함수
+    const getAuthHeaders = () => {
+        const token = localStorage.getItem('accessToken');
+        const headers = {
+            'accept': 'application/json',
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        return headers;
+    };
+
+    const [userProfile, setUserProfile] = useState({
+        name: 'Javis Kim',
+        profileImage: profileDefaultImage,
+    });
+
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                setUserProfile({ name: 'Javis Kim', profileImage: profileDefaultImage });
+                return;
+            }
+
+            try {
+                const response = await fetch(url('/users/me'), {
+                    method: 'GET',
+                    headers: getAuthHeaders(),
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setUserProfile({
+                        name: data.nickname || 'Javis Kim',
+                        profileImage: data.profileImage || profileDefaultImage,
+                    });
+                } else {
+                    console.error('Failed to fetch user profile:', response.status, response.statusText);
+                    setUserProfile({ name: 'Javis Kim', profileImage: profileDefaultImage });
+                }
+            } catch (error) {
+                console.error('Error fetching user profile:', error);
+                setUserProfile({ name: 'Javis Kim', profileImage: profileDefaultImage });
+            }
+        };
+
+        fetchUserProfile();
+    }, []);
 
     // 팝업 관련 상태
     const [showPopup, setShowPopup] = useState(false);
@@ -138,7 +188,7 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
                     const response = await fetch(url(`/conversations/${selectedConversationId}`), {
                         method: 'PUT',
                         headers: {
-                            'accept': 'application/json',
+                            ...getAuthHeaders(),
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({ title: newTitle }),
@@ -166,7 +216,7 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
             try {
                 const response = await fetch(url(`/conversations/${selectedConversationId}`), {
                     method: 'DELETE',
-                    headers: { 'accept': 'application/json' },
+                    headers: getAuthHeaders(),
                 });
 
                 if (!response.ok) {
@@ -267,10 +317,10 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
             {/* Sidebar Footer (Profile) */}
             <div className="p-4 border-t flex items-center justify-between">
                 <div className="flex items-center">
-                    <img src={profileDefaultImage} alt="프로필" className="w-10 h-10 rounded-full mr-2" />
-                    <span className="font-semibold text-dark-gray">Javis Kim</span>
+                    <img src={userProfile.profileImage} alt="프로필" className="w-10 h-10 rounded-full mr-2" />
+                    <span className="font-semibold text-dark-gray">{userProfile.name}</span>
                 </div>
-                <IconButton onClick={() => console.log('마이페이지 이동')}>
+                <IconButton onClick={() => navigate('/mypage')}>
                     <img src={dotMenuIcon} alt="마이페이지" className="h-5 w-5 text-medium-gray" />
                 </IconButton>
             </div>
