@@ -90,14 +90,14 @@ const Mypage = ({ isOpen, onClose }) => {
 
         {loading && (
           <div className="flex-1 flex items-center justify-center">
-            <p>사용자 정보를 불러오는 중...</p>
+            <p className="font-Jalnan_2">사용자 정보를 불러오는 중...</p>
           </div>
         )}
 
         {error && (
           <div className="flex-1 flex items-center justify-center flex-col">
-            <p className="text-red-500 mb-2">오류 발생: {error}</p>
-            <button onClick={onClose} className="px-4 py-2 bg-blue-500 text-white rounded">
+            <p className="text-red-500 mb-2 font-Jalnan_2">오류 발생: {error}</p>
+            <button onClick={onClose} className="px-4 py-2 bg-blue-500 text-white rounded font-Jalnan_2">
               닫기
             </button>
           </div>
@@ -112,16 +112,16 @@ const Mypage = ({ isOpen, onClose }) => {
               className="w-24 h-24 rounded-full mb-4 object-cover"
             />
             {/* Nickname */}
-            <span className="text-xl font-semibold mb-2">닉네임: {userProfile.nickname || '정보 없음'}</span>
+            <span className="text-xl font-semibold mb-2 font-Jalnan_2">닉네임: {userProfile.nickname || '정보 없음'}</span>
             {/* Email */}
-            <p className="text-gray-700 mb-1">이메일: {userProfile.email || '정보 없음'}</p>
+            <p className="text-gray-700 mb-1 font-Jalnan_2">이메일: {userProfile.email || '정보 없음'}</p>
             {/* Join Date */}
-            <p className="text-gray-700 mb-4">가입일: {formatJoinDate(userProfile.created_at)}</p>
+            <p className="text-gray-700 mb-4 font-Jalnan_2">가입일: {formatJoinDate(userProfile.created_at)}</p>
 
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="mt-6 px-6 py-3 bg-red-500 text-white rounded-lg shadow-md hover:bg-red-600 transition-colors"
+              className="mt-6 px-6 py-3 bg-red-500 text-white rounded-lg shadow-md hover:bg-red-600 transition-colors font-Jalnan_2"
             >
               로그아웃
             </button>

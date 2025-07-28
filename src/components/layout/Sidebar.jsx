@@ -213,13 +213,20 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
     // 대화 삭제 기능 (백엔드 API 호출 필요)
     const handleDeleteConversation = async () => {
         if (selectedConversationId && window.confirm("정말로 이 대화를 삭제하시겠습니까?")) {
+            console.log("Deleting conversation with ID:", selectedConversationId);
+            const deleteUrl = url(`/conversations/${selectedConversationId}`);
+            console.log("Requesting DELETE to URL:", deleteUrl);
             try {
-                const response = await fetch(url(`/conversations/${selectedConversationId}`), {
+                const response = await fetch(deleteUrl, {
                     method: 'DELETE',
                     headers: getAuthHeaders(),
                 });
 
+                console.log("Delete response:", response);
+
                 if (!response.ok) {
+                    const errorBody = await response.text();
+                    console.error("Error response body:", errorBody);
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
