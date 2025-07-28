@@ -1,24 +1,50 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom'; // useNavigate, useParams 임포트
-import { v4 as uuidv4 } from 'uuid'; // uuid 임포트
+import { useNavigate, useParams, useLocation } from 'react-router-dom'; // useLocation 임포트 추가
+import { v4 as uuidv4 } from 'uuid';
 import Header from '../components/layout/Header';
 import MessageList from '../components/chat/MessageList';
 import ChatInput from '../components/chat/ChatInput';
-import Sidebar from '../components/layout/Sidebar'; // Sidebar 임포트
+import Sidebar from '../components/layout/Sidebar';
 
 const ChatPage = () => {
   const API_BASE = (import.meta.env?.VITE_API_BASE_URL && import.meta.env.VITE_API_BASE_URL.trim())
       ? import.meta.env.VITE_API_BASE_URL.trim().replace(/\/$/, '')
       : '/api';
   const url = (path) => `${API_BASE}${path}`;
-  const [messages, setMessages] = useState([]); // 초기 메시지 빈 배열로 설정
+  const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Sidebar 상태 추가
-  const [conversations, setConversations] = useState([]); // 대화 목록 상태 추가
-  const [currentConversationTitle, setCurrentConversationTitle] = useState('새 채팅'); // 현재 대화 제목 상태 추가
-  const navigate = useNavigate(); // useNavigate 훅 사용
-  const { conversationId } = useParams(); // URL 파라미터 읽기
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [conversations, setConversations] = useState([]);
+  const [currentConversationTitle, setCurrentConversationTitle] = useState('새 채팅');
+  const navigate = useNavigate();
+  const { conversationId } = useParams();
+  const location = useLocation(); // useLocation 훅 사용
+
+  // JWT 토큰을 가져오는 헬퍼 함수
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('jwt_token');
+    const headers = {
+      'accept': 'application/json',
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
+  };
+
+  // 컴포넌트 마운트 시 URL에서 토큰 추출 및 저장
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const token = params.get('token');
+
+    if (token) {
+      localStorage.setItem('jwt_token', token);
+      // URL에서 토큰 제거 (히스토리 스택에 새 엔트리 추가하지 않음)
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location, navigate]);
+
 
   // 현재 대화의 제목을 불러오는 함수
   const fetchCurrentConversationTitle = async () => {
@@ -26,9 +52,7 @@ const ChatPage = () => {
       try {
         const response = await fetch(url(`/conversations/${conversationId}`), {
           method: 'GET',
-          headers: {
-            'accept': 'application/json',
-          },
+          headers: getAuthHeaders(), // 인증 헤더 추가
         });
 
         if (!response.ok) {
@@ -39,10 +63,10 @@ const ChatPage = () => {
         setCurrentConversationTitle(data.title || '새 채팅');
       } catch (err) {
         console.error(`대화 제목 불러오기 실패: ${conversationId}`, err);
-        setCurrentConversationTitle('새 채팅'); // 실패 시 기본 제목으로 설정
+        setCurrentConversationTitle('새 채팅');
       }
     } else {
-      setCurrentConversationTitle('새 채팅'); // conversationId가 없으면 기본 제목
+      setCurrentConversationTitle('새 채팅');
     }
   };
 
@@ -51,35 +75,33 @@ const ChatPage = () => {
     try {
       const response = await fetch(url(`/conversations/`), {
         method: 'GET',
-        headers: {
-          'accept': 'application/json',
-        },
+        headers: getAuthHeaders(), // 인증 헤더 추가
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
-      setConversations(data.conversations || []); // conversations 상태 업데이트
+      setConversations(data.conversations || []);
     } catch (err) {
       console.error("대화 목록 불러오기 실패:", err);
-      // 사용자에게 에러를 알리거나 다른 방식으로 처리할 수 있습니다.
     }
   };
 
   // 새로운 대화 시작 함수
   const startNewConversation = async () => {
     if (isSidebarOpen) {
-      setIsSidebarOpen(false); // 사이드바가 열려있으면 닫기
+      setIsSidebarOpen(false);
     }
 
     try {
-      const response = await fetch(url(`/conversations/`), { // 백엔드 엔드포인트
+      const response = await fetch(url(`/conversations/`), {
         method: 'POST',
         headers: {
-          'accept': 'application/json',
+          ...getAuthHeaders(), // 인증 헤더 추가
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({}), // 빈 바디 전송
+        body: JSON.stringify({}),
       });
 
       console.log(response);
@@ -89,13 +111,13 @@ const ChatPage = () => {
       }
 
       const data = await response.json();
-      const newId = data.conversation_id; // 백엔드에서 반환하는 새로운 대화 ID
+      const newId = data.conversation_id;
 
-      navigate(`/chat/${newId}`); // 새로운 대화 ID를 포함한 URL로 이동
-      setMessages([]); // 새 대화이므로 메시지 초기화
+      navigate(`/chat/${newId}`);
+      setMessages([]);
       setInputValue('');
       console.log("새 대화 생성 성공:", data);
-      fetchConversations(); // 새 대화 생성 후 대화 목록 갱신
+      fetchConversations();
     } catch (err) {
       console.error("새 대화 생성 실패:", err);
       alert(`새 대화 생성 실패: ${err.message}`);
@@ -112,7 +134,7 @@ const ChatPage = () => {
       };
 
       window.visualViewport.addEventListener('resize', handleResize);
-      handleResize(); // 초기 로드 시 한 번 실행
+      handleResize();
 
       return () => {
         window.visualViewport.removeEventListener('resize', handleResize);
@@ -122,16 +144,14 @@ const ChatPage = () => {
 
   // conversationId가 변경될 때마다 해당 대화 로드 (API 호출)
   useEffect(() => {
-    const fetchMessagesAndTitle = async () => { // 함수 이름 변경
+    const fetchMessagesAndTitle = async () => {
       if (conversationId) {
         console.log(`Loading conversation: ${conversationId}`);
         try {
           // 1. 대화 메시지 가져오기
           const messagesResponse = await fetch(url(`/conversations/${conversationId}/full`), {
             method: 'GET',
-            headers: {
-              'accept': 'application/json',
-            },
+            headers: getAuthHeaders(), // 인증 헤더 추가
           });
 
           if (messagesResponse.status === 404) {
@@ -142,12 +162,10 @@ const ChatPage = () => {
 
           const messagesData = await messagesResponse.json();
           const typedMessages = (Array.isArray(messagesData.messages) ? messagesData.messages : []).map(msg => {
-            // 백엔드에서 이미 type 필드를 보내주므로 그대로 사용
-            // image_url이 있으면 type을 'image'로 강제하고, 없으면 백엔드 type 사용
             if (msg.image_url) {
-              return { ...msg, type: 'image' }; // image 필드 대신 image_url 사용
+              return { ...msg, type: 'image' };
             }
-            return { ...msg, type: msg.type || 'text' }; // 백엔드에서 받은 type을 사용하거나 기본값 'text'
+            return { ...msg, type: msg.type || 'text' };
           });
           setMessages(typedMessages || []);
           console.log(`Messages for ${conversationId}:`, typedMessages);
@@ -155,9 +173,7 @@ const ChatPage = () => {
           // 2. 대화 제목 가져오기
           const titleResponse = await fetch(url(`/conversations/${conversationId}`), {
             method: 'GET',
-            headers: {
-              'accept': 'application/json',
-            },
+            headers: getAuthHeaders(), // 인증 헤더 추가
           });
 
           if (!titleResponse.ok) {
@@ -180,7 +196,7 @@ const ChatPage = () => {
     };
 
     fetchMessagesAndTitle();
-    fetchCurrentConversationTitle(); // 대화 ID 변경 시 제목도 함께 가져옴
+    fetchCurrentConversationTitle();
   }, [conversationId]);
 
   // 컴포넌트 마운트 시 대화 목록 초기 로드
@@ -198,7 +214,8 @@ const ChatPage = () => {
         const response = await fetch(url(`/conversations/`), {
           method: 'POST',
           headers: {
-            'accept': 'application/json',
+            ...getAuthHeaders(), // 인증 헤더 추가
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({}),
         });
@@ -209,22 +226,22 @@ const ChatPage = () => {
 
         const data = await response.json();
         currentConvId = data.conversation_id;
-        navigate(`/chat/${currentConvId}`); // 새 ID로 URL 업데이트
+        navigate(`/chat/${currentConvId}`);
         console.log("새 대화 생성 및 ID 설정:", currentConvId);
       } catch (err) {
         console.error("새 대화 생성 실패:", err);
         alert(`새 대화 생성 실패: ${err.message}`);
-        return; // 새 대화 생성 실패 시 메시지 전송 중단
+        return;
       }
     }
 
     // 1. 사용자 메시지를 화면에 즉시 표시
     const newMessage = {
-      id: uuidv4(), // 고유 ID 생성
-      content: text, // <-- text 대신 content 필드 사용
+      id: uuidv4(),
+      content: text,
       sender: 'user',
       type: imageFile ? 'image' : 'text',
-      image_url: imageFile ? URL.createObjectURL(imageFile) : null, // image 대신 image_url 필드 사용
+      image_url: imageFile ? URL.createObjectURL(imageFile) : null,
     };
     setMessages(prevMessages => [...prevMessages, newMessage]);
     setInputValue('');
@@ -239,12 +256,12 @@ const ChatPage = () => {
       const formData = new FormData();
       formData.append('image', imageFile);
       formData.append('question', text);
-      formData.append('conversation_id', currentConvId); // 업데이트된 ID 사용
+      formData.append('conversation_id', currentConvId);
 
       options = {
         method: 'POST',
         body: formData,
-        // multipart/form-data의 경우 Content-Type 헤더를 브라우저가 자동으로 설정하도록 둡니다.
+        headers: getAuthHeaders(), // 인증 헤더 추가 (FormData는 Content-Type 자동 설정)
       };
 
     } else {
@@ -253,12 +270,12 @@ const ChatPage = () => {
       options = {
         method: 'POST',
         headers: {
-          'accept': 'application/json',
+          ...getAuthHeaders(), // 인증 헤더 추가
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           prompt: text,
-          conversation_id: currentConvId, // 업데이트된 ID 사용
+          conversation_id: currentConvId,
         }),
       };
     }
@@ -275,11 +292,10 @@ const ChatPage = () => {
       console.log('API 응답:', data);
 
       // 3. 봇의 응답 메시지를 화면에 표시
-      const botMessageContent = data.answer || data.content; // 백엔드 응답에서 answer 또는 content 필드 사용
+      const botMessageContent = data.answer || data.content;
       let botMessage = null;
 
-      // 백엔드에서 route_data를 파싱해서 보내주므로, 여기서는 data.route_data를 직접 사용
-      if (data.route_data) { // data.route_data가 있는지 확인
+      if (data.route_data) {
         botMessage = {
           id: uuidv4(),
           sender: 'bot',
@@ -288,7 +304,6 @@ const ChatPage = () => {
           content: botMessageContent,
         };
       } else {
-        // route_data가 없는 경우 (일반 텍스트 응답)
         botMessage = {
           id: uuidv4(),
           sender: 'bot',
@@ -297,20 +312,17 @@ const ChatPage = () => {
         };
       }
 
-      // 최종적으로 구성된 봇 메시지를 상태에 추가
       if (botMessage) {
         setMessages(prevMessages => [...prevMessages, botMessage]);
       } else {
         console.error('봇 메시지 생성 실패: ', data);
       }
 
-      // 대화 목록 및 현재 대화 제목 갱신
       fetchConversations();
       fetchCurrentConversationTitle();
     } catch (err) {
       console.error("API 호출 실패:", err);
       alert(`메시지 전송에 실패했습니다: ${err.message}`);
-      // TODO: 실패 시 메시지 상태 변경 (예: '전송 실패' 표시)
     }
   };
 
@@ -319,21 +331,19 @@ const ChatPage = () => {
           className="w-full h-screen bg-white overflow-hidden relative"
           style={{ '--keyboard-height': `${keyboardHeight}px` }}
       >
-        <Header title={currentConversationTitle === '새 채팅' ? '🛫 여행자비스' : currentConversationTitle} onMenuClick={() => { setIsSidebarOpen(true); fetchConversations(); }} onNewChatClick={startNewConversation} /> {/* onMenuClick, onNewChatClick prop 추가 */}
+        <Header title={currentConversationTitle === '새 채팅' ? ' 여행자비스' : currentConversationTitle} onMenuClick={() => { setIsSidebarOpen(true); fetchConversations(); }} onNewChatClick={startNewConversation} />
         <MessageList messages={messages} />
         <ChatInput
             value={inputValue}
             onChange={(val) => {
-              // val이 이벤트 객체인지 문자열인지 확인하여 처리
               if (typeof val === 'string') {
                 setInputValue(val);
               } else if (val && val.target) {
                 setInputValue(val.target.value);
               }
             }}
-            onSend={(text, image) => handleSendMessage(text, image)} // onSend prop 변경
+            onSend={(text, image) => handleSendMessage(text, image)}
         />
-        {/* Sidebar 컴포넌트 추가 */}
         <Sidebar
             isOpen={isSidebarOpen}
             onClose={() => setIsSidebarOpen(false)}
@@ -341,15 +351,11 @@ const ChatPage = () => {
             fetchConversations={fetchConversations}
             fetchCurrentConversationTitle={fetchCurrentConversationTitle}
             onSummarizeConversation={(convId) => {
-                // 여기에 대화 요약 API 호출 로직을 추가합니다.
-                // convId는 Sidebar에서 전달받은 selectedConversationId가 됩니다.
-                console.log(`대화 요약 요청: ${convId}`);
-                alert(`대화 ${convId} 요약 기능은 아직 구현 중입니다.`);
-                // 실제 API 호출: fetch('/api/summarize', { method: 'POST', body: JSON.stringify({ conversation_id: convId }) });
+              console.log(`대화 요약 요청: ${convId}`);
+              alert(`대화 ${convId} 요약 기능은 아직 구현 중입니다.`);
             }}
         />
 
-        {/* Sidebar 오버레이 (투명) */}
         {isSidebarOpen && (
             <div
                 className="fixed inset-0 bg-transparent z-10"
