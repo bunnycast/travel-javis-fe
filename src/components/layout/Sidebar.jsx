@@ -198,8 +198,8 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
 
-          fetchConversations(); // 대화 목록 갱신
-          fetchCurrentConversationTitle(); // 현재 대화 제목 갱신
+                    fetchConversations(); // 대화 목록 갱신
+                    fetchCurrentConversationTitle(); // 현재 대화 제목 갱신
                     alert("대화 제목이 성공적으로 변경되었습니다.");
                 } catch (err) {
                     console.error("대화 제목 수정 실패:", err);
@@ -249,21 +249,20 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
         if (selectedConversationId) {
             try {
                 // TODO: 실제 대화 내용을 가져와 body에 포함하도록 수정 필요
-                const conversationTitle = conversations.find(conv => conv.id === selectedConversationId)?.title || "";
-                const response = await fetch('https://javisttspdf.shop:444/export/pdf', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/pdf',
-                    },
-                    body: JSON.stringify({ conversation: conversationTitle }), // 일단 대화 제목을 보냄
-                });
+                // const conversationTitle = conversations.find(conv => conv.id === selectedConversationId)?.title || "";
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                // --- Mock PDF 다운로드 로직 직접 호출 ---
+                const pdfUrl = "/conversationSummarized_250729.pdf";
+                const link = document.createElement('a');
+                link.href = pdfUrl;
+                link.download = "conversationSummarized_250729.pdf"; // 다운로드될 파일 이름
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
 
-                const data = await response.json();
-                alert(`대화 요약 요청 성공: ${data.message || '요약이 완료되었습니다.'}`);
+                alert(`대화 요약 요청 성공: PDF 다운로드를 시작합니다.`);
+                // --- Mock PDF 다운로드 로직 끝 ---
+
             } catch (err) {
                 console.error("대화 요약 실패:", err);
                 alert(`대화 요약에 실패했습니다: ${err.message}`);
@@ -313,7 +312,7 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
                                 onClick={(e) => handleOpenOptionsPopup(e, conv.id)}
                                 className="ml-2" // 제목과의 간격
                             >
-                                <img src={dotMenuIcon} alt="옵션" className="h-4 w-4 text-gray-400" /> {/* 아이콘 크기 및 색상 조정 */} 
+                                <img src={dotMenuIcon} alt="옵션" className="h-4 w-4 text-gray-400" /> {/* 아이콘 크기 및 색상 조정 */}
                             </IconButton>
                         </div>
                         <p className="text-sm text-medium-gray truncate">{formatDate(conv.created_at)}</p>
@@ -327,7 +326,7 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
                     <img src={userProfile.profileImage} alt="프로필" className="w-10 h-10 rounded-full mr-2" />
                     <span className="font-semibold text-dark-gray">{userProfile.name}</span>
                 </div>
-                <IconButton onClick={() => { onClose(); onOpenMypage(); }}> {/* 마이페이지 버튼 클릭 시 onOpenMypage 호출 */} 
+                <IconButton onClick={() => { onClose(); onOpenMypage(); }}> {/* 마이페이지 버튼 클릭 시 onOpenMypage 호출 */}
                     <img src={dotMenuIcon} alt="마이페이지" className="h-5 w-5 text-medium-gray" />
                 </IconButton>
             </div>
