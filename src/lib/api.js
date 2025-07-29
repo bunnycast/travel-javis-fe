@@ -28,6 +28,58 @@ if (IS_DEMO_MODE) {
 
         // --- 시나리오별 Mock 응답 ---
 
+        // 4. /chat (자연어 입력) - 경로 키워드 최우선 처리
+        if (url.includes("/chat") && method === "post") {
+            const prompt = config.data ? JSON.parse(config.data).prompt : "";
+            let botResponse = "죄송합니다. 이해하지 못했습니다.";
+
+            if (routeKeywords.some(keyword => prompt.includes(keyword))) {
+                botResponse = routeResponse;
+            } else if (prompt.includes("경복궁")) {
+                botResponse = "경복궁은 조선 왕조의 법궁으로, 서울의 대표적인 고궁입니다. 아름다운 건축물과 정원이 특징입니다.";
+            } else if (prompt.includes("카페 리스트")) {
+                botResponse = "경복궁 근처 추천 카페:\n1. **어니언 안국**: 한옥 분위기의 베이커리 카페\n2. **프릳츠 커피 컴퍼니**: 레트로 감성의 로스터리 카페\n3. **레이어드 안국**: 아기자기한 디저트가 유명한 카페";
+            } else if (prompt.includes("첫번째 카페까지 갈려면")) {
+                botResponse = routeResponse;
+            } else {
+                botResponse = `"${prompt}"에 대한 답변입니다. 시연을 위해 미리 정의된 답변을 제공합니다.`;
+            }
+
+            return Promise.resolve({
+                data: { answer: botResponse },
+                status: 200,
+                statusText: "OK",
+                headers: config.headers,
+                config: config,
+                request: config.request,
+            });
+        }
+
+        // 5. /analyze (사진 기반 질문) - 경로 키워드 최우선 처리
+        if (url.includes("/analyze") && method === "post") {
+            const question = config.data.get('question');
+            let botResponse = "사진 분석 결과입니다. 시연을 위해 미리 정의된 답변을 제공합니다.";
+
+            if (routeKeywords.some(keyword => question.includes(keyword))) {
+                botResponse = routeResponse;
+            } else if (question.includes("이 장소가 어디야?")) {
+                botResponse = "이곳은 경복궁입니다. 조선의 대표적인 궁궐로, 아름다운 건축미를 자랑합니다.";
+            } else if (question.includes("이 근처에 갈 만한 카페 리스트를 알려줘")) {
+                botResponse = "경복궁 근처 추천 카페:\n1. **어니언 안국**: 한옥 분위기의 베이커리 카페\n2. **프릳츠 커피 컴퍼니**: 레트로 감성의 로스터리 카페\n3. **레이어드 안국**: 아기자기한 디저트가 유명한 카페";
+            } else if (question.includes("여기서 첫번째 카페까지 갈려면 어떻게 해야해?")) {
+                botResponse = routeResponse;
+            }
+
+            return Promise.resolve({
+                data: { answer: botResponse },
+                status: 200,
+                statusText: "OK",
+                headers: config.headers,
+                config: config,
+                request: config.request,
+            });
+        }
+
         // 1. 네이버 소셜 로그인 (성공 시 토큰 반환)
         if (url.includes("/auth/naver/callback") && method === "get") {
             return Promise.resolve({
@@ -72,60 +124,6 @@ if (IS_DEMO_MODE) {
             ];
             return Promise.resolve({
                 data: { messages: mockMessages },
-                status: 200,
-                statusText: "OK",
-                headers: config.headers,
-                config: config,
-                request: config.request,
-            });
-        }
-
-        // 4. /chat (자연어 입력)
-        if (url.includes("/chat") && method === "post") {
-            const prompt = config.data ? JSON.parse(config.data).prompt : "";
-            let botResponse = "죄송합니다. 이해하지 못했습니다.";
-
-            // '경로' 또는 '가는 길'이 포함되면 무조건 routeResponse 반환
-            if (routeKeywords.some(keyword => prompt.includes(keyword))) {
-                botResponse = routeResponse;
-            } else if (prompt.includes("경복궁")) {
-                botResponse = "경복궁은 조선 왕조의 법궁으로, 서울의 대표적인 고궁입니다. 아름다운 건축물과 정원이 특징입니다.";
-            } else if (prompt.includes("카페 리스트")) {
-                botResponse = "경복궁 근처 추천 카페:\n1. **어니언 안국**: 한옥 분위기의 베이커리 카페\n2. **프릳츠 커피 컴퍼니**: 레트로 감성의 로스터리 카페\n3. **레이어드 안국**: 아기자기한 디저트가 유명한 카페";
-            } else if (prompt.includes("첫번째 카페까지 갈려면")) {
-                botResponse = routeResponse;
-            } else {
-                botResponse = `"${prompt}"에 대한 답변입니다. 시연을 위해 미리 정의된 답변을 제공합니다.`;
-            }
-
-            return Promise.resolve({
-                data: { answer: botResponse },
-                status: 200,
-                statusText: "OK",
-                headers: config.headers,
-                config: config,
-                request: config.request,
-            });
-        }
-
-        // 5. /analyze (사진 기반 질문)
-        if (url.includes("/analyze") && method === "post") {
-            const question = config.data.get('question');
-            let botResponse = "사진 분석 결과입니다. 시연을 위해 미리 정의된 답변을 제공합니다.";
-
-            // '경로' 또는 '가는 길'이 포함되면 무조건 routeResponse 반환
-            if (routeKeywords.some(keyword => question.includes(keyword))) {
-                botResponse = routeResponse;
-            } else if (question.includes("이 장소가 어디야?")) {
-                botResponse = "이곳은 경복궁입니다. 조선의 대표적인 궁궐로, 아름다운 건축미를 자랑합니다.";
-            } else if (question.includes("이 근처에 갈 만한 카페 리스트를 알려줘")) {
-                botResponse = "경복궁 근처 추천 카페:\n1. **어니언 안국**: 한옥 분위기의 베이커리 카페\n2. **프릳츠 커피 컴퍼니**: 레트로 감성의 로스터리 카페\n3. **레이어드 안국**: 아기자기한 디저트가 유명한 카페";
-            } else if (question.includes("여기서 첫번째 카페까지 갈려면 어떻게 해야해?")) {
-                botResponse = routeResponse;
-            }
-
-            return Promise.resolve({
-                data: { answer: botResponse },
                 status: 200,
                 statusText: "OK",
                 headers: config.headers,
