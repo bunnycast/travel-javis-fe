@@ -23,24 +23,27 @@ if (IS_DEMO_MODE) {
 
         console.log(`[DEMO MODE] Intercepting: ${method.toUpperCase()} ${url}`);
 
-        const routeResponse = "어니언 안국까지는 경복궁에서 도보로 약 10분 거리입니다. 자세한 경로는 네이버 지도를 참고해주세요: [네이버 지도 링크](https://map.naver.com/v5/search/%EC%96%B4%EB%8B%88%EC%96%B8%20%EC%95%88%EA%B5%AD)";
+        const routeResponse = "어니언 안국까지는 경복궁에서 도보로 약 10분 거리입니다. 자세한 경로는 네이버 지도를 참고해주세요: [네이버 지도 링크](https://map.naver.com/p/directions/14134997.4830335,4519704.4159527,광화문,13161322,PLACE_POI/14135444.8538031,4520282.9093815,블루보틀%20삼청%20카페,1942921803,PLACE_POI/-/walk?c=16.00,0,0,0,dh)";
         const routeKeywords = ["경로", "가는 길"];
 
         // --- 시나리오별 Mock 응답 ---
 
-        // 4. /chat (자연어 입력) - 경로 키워드 최우선 처리
+        // 4. /chat (자연어 입력) - 시나리오 강제
         if (url.includes("/chat") && method === "post") {
             const prompt = config.data ? JSON.parse(config.data).prompt : "";
             let botResponse = "죄송합니다. 이해하지 못했습니다.";
 
+            // 경로 관련 질문 최우선 처리
             if (routeKeywords.some(keyword => prompt.includes(keyword))) {
                 botResponse = routeResponse;
-            } else if (prompt.includes("경복궁")) {
-                botResponse = "경복궁은 조선 왕조의 법궁으로, 서울의 대표적인 고궁입니다. 아름다운 건축물과 정원이 특징입니다.";
-            } else if (prompt.includes("카페 리스트")) {
-                botResponse = "경복궁 근처 추천 카페:\n1. **어니언 안국**: 한옥 분위기의 베이커리 카페\n2. **프릳츠 커피 컴퍼니**: 레트로 감성의 로스터리 카페\n3. **레이어드 안국**: 아기자기한 디저트가 유명한 카페";
-            } else if (prompt.includes("첫번째 카페까지 갈려면")) {
-                botResponse = routeResponse;
+            } else if (prompt.includes("안녕 너는 누구야?")) {
+                botResponse = "안녕하세요! 저는 여행자비스입니다. 당신의 여행을 돕기 위해 만들어진 AI 챗봇이에요. 무엇이든 물어보세요!";
+            } else if (prompt.includes("나는 지금 서울을 여행하는 여행자야")) {
+                botResponse = "서울을 여행 중이시군요! 멋진 선택입니다. 서울의 어떤 점이 가장 궁금하신가요? 맛집, 관광지, 아니면 특별한 경험을 찾고 계신가요?";
+            } else if (prompt.includes("내가 지금 어디를 여행하고 있다고?")) {
+                botResponse = "네, 당신은 지금 서울을 여행하고 계십니다. 서울의 매력에 푹 빠져보세요!";
+            } else if (prompt.includes("홍대 근처에 갈만한 곳을 알려줘")) {
+                botResponse = "홍대 근처에는 다양한 매력적인 장소들이 많습니다. 예를 들어, 홍대 거리의 독특한 상점들과 버스킹 공연, 연남동의 아기자기한 카페 골목, 그리고 젊음의 에너지가 넘치는 클럽들이 있습니다. 어떤 종류의 장소를 선호하시나요?";
             } else {
                 botResponse = `"${prompt}"에 대한 답변입니다. 시연을 위해 미리 정의된 답변을 제공합니다.`;
             }
@@ -55,18 +58,19 @@ if (IS_DEMO_MODE) {
             });
         }
 
-        // 5. /analyze (사진 기반 질문) - 경로 키워드 최우선 처리
+        // 5. /analyze (사진 기반 질문) - 시나리오 강제
         if (url.includes("/analyze") && method === "post") {
             const question = config.data.get('question');
             let botResponse = "사진 분석 결과입니다. 시연을 위해 미리 정의된 답변을 제공합니다.";
 
+            // 경로 관련 질문 최우선 처리
             if (routeKeywords.some(keyword => question.includes(keyword))) {
                 botResponse = routeResponse;
-            } else if (question.includes("이 장소가 어디야?")) {
-                botResponse = "이곳은 경복궁입니다. 조선의 대표적인 궁궐로, 아름다운 건축미를 자랑합니다.";
-            } else if (question.includes("이 근처에 갈 만한 카페 리스트를 알려줘")) {
-                botResponse = "경복궁 근처 추천 카페:\n1. **어니언 안국**: 한옥 분위기의 베이커리 카페\n2. **프릳츠 커피 컴퍼니**: 레트로 감성의 로스터리 카페\n3. **레이어드 안국**: 아기자기한 디저트가 유명한 카페";
-            } else if (question.includes("여기서 첫번째 카페까지 갈려면 어떻게 해야해?")) {
+            } else if (question.includes("길 가다가 찍었는데 여기가 어디야?")) {
+                botResponse = "이곳은 경복궁입니다. 조선 왕조의 법궁으로, 서울의 대표적인 고궁입니다. 아름다운 건축미와 정원이 특징입니다.";
+            } else if (question.includes("이 근처에 갈만한 분위기 좋은 카페를 알려줘")) {
+                botResponse = "경복궁 근처 추천 카페입니다:\n\n1.  **블루보틀 삼청**: 한옥 분위기의 베이커리 카페로, 경복궁 산책 후 접근하기 좋습니다. 높은 층고와 모던한 분위기가 특징입니다.\n2.  **페이퍼마쉐**: 단독 건물에 루프탑/테라스가 있는 고급스럽고 조용한 분위기의 카페입니다. 다양한 디저트와 음료를 즐길 수 있습니다.\n3.  **펠트커피 광화문점**: 지하 공간에 위치하여 조용하고 쾌적하며, 핸드드립 커피와 오트라떼가 유명합니다. 커피에 집중할 수 있는 미니멀한 분위기입니다.";
+            } else if (question.includes("첫번째 카페가 좋아보이는데 가는 길을 알려줘")) {
                 botResponse = routeResponse;
             }
 
@@ -95,14 +99,14 @@ if (IS_DEMO_MODE) {
             });
         }
 
-        // 2. /conversations (대화 목록 조회)
+        // 2. /conversations (대화 목록 조회) - 제목 자동 생성 반영
         if (url.includes("/conversations") && method === "get") {
             const mockConversations = [
-                { id: "conv1", title: "안녕하세요", created_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(), updated_at: new Date(Date.now() - 5 * 60 * 1000).toISOString() },
-                { id: "conv2", title: "여행 계획", created_at: new Date(Date.now() - 10 * 60 * 1000).toISOString(), updated_at: new Date(Date.now() - 10 * 60 * 1000).toISOString() },
+                { id: "conv1", title: "홍대 여행 추천 정보", created_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(), updated_at: new Date(Date.now() - 5 * 60 * 1000).toISOString() },
+                { id: "conv2", title: "경복궁 근처 분위기 좋은 카페 추천", created_at: new Date(Date.now() - 10 * 60 * 1000).toISOString(), updated_at: new Date(Date.now() - 10 * 60 * 1000).toISOString() },
                 { id: "conv3", title: "제주도 맛집", created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString(), updated_at: new Date(Date.now() - 15 * 60 * 1000).toISOString() },
                 { id: "conv4", title: "유럽 여행", created_at: new Date(Date.now() - 20 * 60 * 1000).toISOString(), updated_at: new Date(Date.now() - 20 * 60 * 1000).toISOString() },
-                { id: "conv5", title: "경복궁 근처 카페 검색", created_at: new Date(Date.now() - 25 * 60 * 1000).toISOString(), updated_at: new Date(Date.now() - 25 * 60 * 1000).toISOString() },
+                { id: "conv5", title: "새로운 대화", created_at: new Date(Date.now() - 25 * 60 * 1000).toISOString(), updated_at: new Date(Date.now() - 25 * 60 * 1000).toISOString() },
             ];
             return Promise.resolve({
                 data: { conversations: mockConversations },
@@ -127,6 +131,21 @@ if (IS_DEMO_MODE) {
                 status: 200,
                 statusText: "OK",
                 headers: config.headers,
+                config: config,
+                request: config.request,
+            });
+        }
+
+        // 대화 요약 (PDF 다운로드 시뮬레이션)
+        if (url.includes("/export/pdf") && method === "post") {
+            // 실제 PDF 파일은 public 폴더에 미리 업로드되어 있어야 합니다.
+            const pdfUrl = "/경복궁_근처_분위기_좋은_카페_추천.pdf";
+            window.open(pdfUrl, '_blank'); // 새 탭에서 PDF 열기 (다운로드 시뮬레이션)
+            return Promise.resolve({
+                data: { message: "PDF 다운로드 요청이 처리되었습니다." },
+                status: 200,
+                statusText: "OK",
+                headers: { ...config.headers, 'Content-Type': 'application/json' },
                 config: config,
                 request: config.request,
             });
