@@ -23,14 +23,14 @@ if (IS_DEMO_MODE) {
 
         console.log(`[DEMO MODE] Intercepting: ${method.toUpperCase()} ${url}`);
 
-        const routeResponse = "어니언 안국까지는 경복궁에서 도보로 약 10분 거리입니다. 자세한 경로는 네이버 지도를 참고해주세요: [네이버 지도 링크](https://map.naver.com/p/directions/14134997.4830335,4519704.4159527,광화문,13161322,PLACE_POI/14135444.8538031,4520282.9093815,블루보틀%20삼청%20카페,1942921803,PLACE_POI/-/walk?c=16.00,0,0,0,dh)";
+        const routeResponse = "블루보틀 삼청까지 가는 길을 안내해 드릴게요. 경복궁에서 도보로 약 10분 거리입니다. 자세한 경로는 네이버 지도를 참고해주세요: [네이버 지도 링크](https://map.naver.com/p/directions/14134997.4830335,4519704.4159727,광화문,13161322,PLACE_POI/14135444.8538031,4520282.9093815,블루보틀%20삼청%20카페,1942921803,PLACE_POI/-/walk?c=16.00,0,0,0,dh)";
         const routeKeywords = ["경로", "가는 길"];
 
         // --- 시나리오별 Mock 응답 ---
 
         // 4. /chat (자연어 입력) - 시나리오 강제
         if (url.includes("/chat") && method === "post") {
-            const prompt = config.data ? JSON.parse(config.data).prompt : "";
+            const prompt = config.data ? JSON.parse(config.data).prompt.trim().toLowerCase() : "";
             let botResponse = "죄송합니다. 이해하지 못했습니다.";
 
             // 경로 관련 질문 최우선 처리
@@ -60,14 +60,14 @@ if (IS_DEMO_MODE) {
 
         // 5. /analyze (사진 기반 질문) - 시나리오 강제
         if (url.includes("/analyze") && method === "post") {
-            const question = config.data.get('question');
+            const question = config.data.get('question').trim().toLowerCase();
             let botResponse = "사진 분석 결과입니다. 시연을 위해 미리 정의된 답변을 제공합니다.";
 
             // 경로 관련 질문 최우선 처리
             if (routeKeywords.some(keyword => question.includes(keyword))) {
                 botResponse = routeResponse;
             } else if (question.includes("길 가다가 찍었는데 여기가 어디야?")) {
-                botResponse = "이곳은 경복궁입니다. 조선 왕조의 법궁으로, 서울의 대표적인 고궁입니다. 아름다운 건축미와 정원이 특징입니다.";
+                botResponse = "이곳은 경복궁입니다. 조선 왕조의 법궁으로, 아름다운 건축미를 자랑합니다.";
             } else if (question.includes("이 근처에 갈만한 분위기 좋은 카페를 알려줘")) {
                 botResponse = "경복궁 근처 추천 카페입니다:\n\n1.  **블루보틀 삼청**: 한옥 분위기의 베이커리 카페로, 경복궁 산책 후 접근하기 좋습니다. 높은 층고와 모던한 분위기가 특징입니다.\n2.  **페이퍼마쉐**: 단독 건물에 루프탑/테라스가 있는 고급스럽고 조용한 분위기의 카페입니다. 다양한 디저트와 음료를 즐길 수 있습니다.\n3.  **펠트커피 광화문점**: 지하 공간에 위치하여 조용하고 쾌적하며, 핸드드립 커피와 오트라떼가 유명합니다. 커피에 집중할 수 있는 미니멀한 분위기입니다.";
             } else if (question.includes("첫번째 카페가 좋아보이는데 가는 길을 알려줘")) {
