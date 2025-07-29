@@ -52,8 +52,16 @@ if (IS_DEMO_MODE) {
         // 대화 요약 (PDF 다운로드 시뮬레이션)
         if (url.includes("/export/pdf") && method === "post") {
             // 실제 PDF 파일은 public 폴더에 미리 업로드되어 있어야 합니다.
-            const pdfUrl = "/경복궁_근처_분위기_좋은_카페_추천.pdf";
-            window.open(pdfUrl, '_blank'); // 새 탭에서 PDF 열기 (다운로드 시뮬레이션)
+            const pdfUrl = "/conversationSummarized_250729.pdf";
+            
+            // 임시 <a> 태그를 생성하여 다운로드 속성을 부여하고 클릭
+            const link = document.createElement('a');
+            link.href = pdfUrl;
+            link.download = "conversationSummarized_250729.pdf"; // 다운로드될 파일 이름
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
             return Promise.resolve({
                 data: { message: "PDF 다운로드 요청이 처리되었습니다." },
                 status: 200,
