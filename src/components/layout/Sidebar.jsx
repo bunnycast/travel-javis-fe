@@ -253,7 +253,7 @@ const Sidebar = ({ isOpen, onClose, conversations, fetchConversations, fetchCurr
                 const response = await fetch('https://javisttspdf.shop:444/export/pdf', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/pdf',
                     },
                     body: JSON.stringify({ conversation: conversationTitle }), // 일단 대화 제목을 보냄
                 });
