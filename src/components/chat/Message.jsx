@@ -29,15 +29,16 @@ const Message = ({ message }) => {
 
   // Markdown 링크를 HTML <a> 태그로 변환하는 함수
   const renderContentWithLinks = (text) => {
+    const trimmedText = text.trim(); // Trim the text before processing
     const linkRegex = /\[(.*?)\]\((.*?)\)/g;
     const parts = [];
     let lastIndex = 0;
     let match;
 
-    while ((match = linkRegex.exec(text)) !== null) {
-      const [linkText, url] = match;
+    while ((match = linkRegex.exec(trimmedText)) !== null) {
+      const [fullMatch, linkText, url] = match; // Capture full match as well
       if (match.index > lastIndex) {
-        parts.push(text.substring(lastIndex, match.index));
+        parts.push(trimmedText.substring(lastIndex, match.index));
       }
       parts.push(
           <a key={match.index} href={url} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
@@ -46,8 +47,8 @@ const Message = ({ message }) => {
       );
       lastIndex = linkRegex.lastIndex;
     }
-    if (lastIndex < text.length) {
-      parts.push(text.substring(lastIndex));
+    if (lastIndex < trimmedText.length) {
+      parts.push(trimmedText.substring(lastIndex));
     }
     return parts;
   };
