@@ -23,6 +23,9 @@ if (IS_DEMO_MODE) {
 
         console.log(`[DEMO MODE] Intercepting: ${method.toUpperCase()} ${url}`);
 
+        const routeResponse = "어니언 안국까지는 경복궁에서 도보로 약 10분 거리입니다. 자세한 경로는 네이버 지도를 참고해주세요: [네이버 지도 링크](https://map.naver.com/v5/search/%EC%96%B4%EB%8B%88%EC%96%B8%20%EC%95%88%EA%B5%AD)";
+        const routeKeywords = ["경로", "가는 길"];
+
         // --- 시나리오별 Mock 응답 ---
 
         // 1. 네이버 소셜 로그인 (성공 시 토큰 반환)
@@ -82,12 +85,15 @@ if (IS_DEMO_MODE) {
             const prompt = config.data ? JSON.parse(config.data).prompt : "";
             let botResponse = "죄송합니다. 이해하지 못했습니다.";
 
-            if (prompt.includes("경복궁")) {
+            // '경로' 또는 '가는 길'이 포함되면 무조건 routeResponse 반환
+            if (routeKeywords.some(keyword => prompt.includes(keyword))) {
+                botResponse = routeResponse;
+            } else if (prompt.includes("경복궁")) {
                 botResponse = "경복궁은 조선 왕조의 법궁으로, 서울의 대표적인 고궁입니다. 아름다운 건축물과 정원이 특징입니다.";
             } else if (prompt.includes("카페 리스트")) {
                 botResponse = "경복궁 근처 추천 카페:\n1. **어니언 안국**: 한옥 분위기의 베이커리 카페\n2. **프릳츠 커피 컴퍼니**: 레트로 감성의 로스터리 카페\n3. **레이어드 안국**: 아기자기한 디저트가 유명한 카페";
             } else if (prompt.includes("첫번째 카페까지 갈려면")) {
-                botResponse = "어니언 안국까지는 경복궁에서 도보로 약 10분 거리입니다. 자세한 경로는 네이버 지도를 참고해주세요: [네이버 지도 링크](https://map.naver.com/v5/search/%EC%96%B4%EB%8B%88%EC%96%B8%20%EC%95%88%EA%B5%AD)";
+                botResponse = routeResponse;
             } else {
                 botResponse = `"${prompt}"에 대한 답변입니다. 시연을 위해 미리 정의된 답변을 제공합니다.`;
             }
@@ -107,12 +113,15 @@ if (IS_DEMO_MODE) {
             const question = config.data.get('question');
             let botResponse = "사진 분석 결과입니다. 시연을 위해 미리 정의된 답변을 제공합니다.";
 
-            if (question.includes("이 장소가 어디야?")) {
+            // '경로' 또는 '가는 길'이 포함되면 무조건 routeResponse 반환
+            if (routeKeywords.some(keyword => question.includes(keyword))) {
+                botResponse = routeResponse;
+            } else if (question.includes("이 장소가 어디야?")) {
                 botResponse = "이곳은 경복궁입니다. 조선의 대표적인 궁궐로, 아름다운 건축미를 자랑합니다.";
             } else if (question.includes("이 근처에 갈 만한 카페 리스트를 알려줘")) {
                 botResponse = "경복궁 근처 추천 카페:\n1. **어니언 안국**: 한옥 분위기의 베이커리 카페\n2. **프릳츠 커피 컴퍼니**: 레트로 감성의 로스터리 카페\n3. **레이어드 안국**: 아기자기한 디저트가 유명한 카페";
             } else if (question.includes("여기서 첫번째 카페까지 갈려면 어떻게 해야해?")) {
-                botResponse = "어니언 안국까지는 경복궁에서 도보로 약 10분 거리입니다. 자세한 경로는 네이버 지도를 참고해주세요: [네이버 지도 링크](https://map.naver.com/v5/search/%EC%96%B4%EB%8B%88%EC%96%B8%20%EC%95%88%EA%B5%AD)";
+                botResponse = routeResponse;
             }
 
             return Promise.resolve({
